@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import '../models/transaction.dart';
+import '../models/expense.dart';
 import 'tables/groups.dart';
 import 'tables/members.dart';
 import 'tables/transactions.dart';

@@ -1,8 +1,7 @@
 import 'package:drift/drift.dart';
+import '../../models/expense.dart';
 import 'transactions.dart';
 import 'members.dart';
-
-enum SplitType { equal, custom }
 
 class ExpenseDetails extends Table {
   TextColumn get txId => text().references(Transactions, #id)();

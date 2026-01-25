@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
+import '../../models/transaction.dart';
 import 'groups.dart';
-
-enum TransactionType { expense, transfer }
 
 @TableIndex(
   name: 'transactions_group_occurred',
