@@ -6,6 +6,9 @@ import '../../models/group.dart' as model;
 abstract class GroupRepository {
   Future<List<model.Group>> getAllGroups({bool includeArchived = false});
   Stream<List<model.Group>> watchGroups({bool includeArchived = false});
+  Stream<List<model.GroupWithMemberCount>> watchGroupsWithMemberCount({
+    bool includeArchived = false,
+  });
   Future<model.Group?> getGroupById(String id);
   Future<void> createGroup(model.Group group);
   Future<void> updateGroup(model.Group group);
@@ -35,6 +38,37 @@ class DriftGroupRepository implements GroupRepository {
       query.where((t) => t.archivedAt.isNull());
     }
     return query.watch().map((rows) => rows.map(GroupMapper.toModel).toList());
+  }
+
+  @override
+  Stream<List<model.GroupWithMemberCount>> watchGroupsWithMemberCount({
+    bool includeArchived = false,
+  }) {
+    final countMembers = _db.members.id.count();
+    final query = _db.select(_db.groups).join([
+      leftOuterJoin(_db.members, _db.members.groupId.equalsExp(_db.groups.id)),
+    ]);
+
+    if (!includeArchived) {
+      query.where(_db.groups.archivedAt.isNull());
+    }
+
+    // Only count members that are not removed
+    query.where(_db.members.removedAt.isNull() | _db.members.id.isNull());
+
+    query.addColumns([countMembers]);
+    query.groupBy([_db.groups.id]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        final group = GroupMapper.toModel(row.readTable(_db.groups));
+        final memberCount = row.read(countMembers) ?? 0;
+        return model.GroupWithMemberCount(
+          group: group,
+          memberCount: memberCount,
+        );
+      }).toList();
+    });
   }
 
   @override

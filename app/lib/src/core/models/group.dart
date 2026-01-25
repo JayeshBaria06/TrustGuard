@@ -15,3 +15,14 @@ class Group with _$Group {
 
   factory Group.fromJson(Map<String, dynamic> json) => _$GroupFromJson(json);
 }
+
+@freezed
+class GroupWithMemberCount with _$GroupWithMemberCount {
+  const factory GroupWithMemberCount({
+    required Group group,
+    required int memberCount,
+  }) = _GroupWithMemberCount;
+
+  factory GroupWithMemberCount.fromJson(Map<String, dynamic> json) =>
+      _$GroupWithMemberCountFromJson(json);
+}
