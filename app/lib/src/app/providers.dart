@@ -1,0 +1,37 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/database/database.dart';
+import '../core/database/repositories/group_repository.dart';
+import '../core/database/repositories/member_repository.dart';
+import '../core/database/repositories/transaction_repository.dart';
+import '../core/database/repositories/tag_repository.dart';
+
+/// Provider for the [AppDatabase] singleton.
+final databaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase();
+  ref.onDispose(() => db.close());
+  return db;
+});
+
+/// Provider for [GroupRepository].
+final groupRepositoryProvider = Provider<GroupRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return DriftGroupRepository(db);
+});
+
+/// Provider for [MemberRepository].
+final memberRepositoryProvider = Provider<MemberRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return DriftMemberRepository(db);
+});
+
+/// Provider for [TransactionRepository].
+final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return DriftTransactionRepository(db);
+});
+
+/// Provider for [TagRepository].
+final tagRepositoryProvider = Provider<TagRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return DriftTagRepository(db);
+});

@@ -11,6 +11,8 @@ import 'tables/transfer_details.dart';
 import 'tables/tags.dart';
 import 'tables/transaction_tags.dart';
 
+import 'tables/attachments.dart';
+
 part 'database.g.dart';
 
 @DriftDatabase(
@@ -23,6 +25,7 @@ part 'database.g.dart';
     TransferDetails,
     Tags,
     TransactionTags,
+    Attachments,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -30,6 +33,24 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (m) async {
+        await m.createAll();
+      },
+      onUpgrade: (m, from, to) async {
+        // Migration logic for future versions
+      },
+      beforeOpen: (details) async {
+        if (details.wasCreated) {
+          // Initial data if needed
+        }
+        await customStatement('PRAGMA foreign_keys = ON');
+      },
+    );
+  }
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
