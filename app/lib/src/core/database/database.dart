@@ -6,6 +6,8 @@ import 'tables/transactions.dart';
 import 'tables/expense_details.dart';
 import 'tables/expense_participants.dart';
 import 'tables/transfer_details.dart';
+import 'tables/tags.dart';
+import 'tables/transaction_tags.dart';
 
 part 'database.g.dart';
 
@@ -17,6 +19,8 @@ part 'database.g.dart';
     ExpenseDetails,
     ExpenseParticipants,
     TransferDetails,
+    Tags,
+    TransactionTags,
   ],
 )
 class AppDatabase extends _$AppDatabase {
