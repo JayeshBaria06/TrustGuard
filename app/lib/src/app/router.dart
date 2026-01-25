@@ -4,6 +4,7 @@ import '../features/groups/presentation/group_form_screen.dart';
 import '../features/groups/presentation/group_overview_screen.dart';
 import '../features/groups/presentation/home_screen.dart';
 import '../features/groups/presentation/members_screen.dart';
+import '../features/transactions/presentation/transaction_list_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -54,8 +55,10 @@ final router = GoRouter(
             ),
             GoRoute(
               path: 'transactions',
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Transactions'),
+              builder: (context, state) {
+                final id = state.pathParameters['id']!;
+                return TransactionListScreen(groupId: id);
+              },
               routes: [
                 GoRoute(
                   path: 'add-expense',

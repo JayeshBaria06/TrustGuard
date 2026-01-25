@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../database.dart';
+import 'tag_mapper.dart';
 import '../../models/transaction.dart' as model;
 import '../../models/expense.dart' as model;
 import '../../models/transfer.dart' as model;
@@ -10,6 +11,7 @@ class TransactionMapper {
     ExpenseDetail? expenseDetail,
     List<ExpenseParticipant>? participants,
     TransferDetail? transferDetail,
+    List<Tag>? tags,
   }) {
     return model.Transaction(
       id: transaction.id,
@@ -45,6 +47,7 @@ class TransactionMapper {
               amountMinor: transferDetail.amountMinor,
             )
           : null,
+      tags: tags?.map(TagMapper.toModel).toList() ?? [],
     );
   }
 

@@ -102,11 +102,19 @@ class DriftTransactionRepository implements TransactionRepository {
       )..where((t) => t.txId.equals(tx.id))).get();
     }
 
+    final tags = await (_db.select(_db.tags).join([
+      innerJoin(
+        _db.transactionTags,
+        _db.transactionTags.tagId.equalsExp(_db.tags.id),
+      ),
+    ])..where(_db.transactionTags.txId.equals(tx.id))).get();
+
     return TransactionMapper.toModel(
       transaction: tx,
       expenseDetail: expenseDetail,
       participants: participants,
       transferDetail: transferDetail,
+      tags: tags.map((r) => r.readTable(_db.tags)).toList(),
     );
   }
 
@@ -232,12 +240,20 @@ class DriftTransactionRepository implements TransactionRepository {
         )..where((t) => t.txId.equals(tx.id))).get();
       }
 
+      final tags = await (_db.select(_db.tags).join([
+        innerJoin(
+          _db.transactionTags,
+          _db.transactionTags.tagId.equalsExp(_db.tags.id),
+        ),
+      ])..where(_db.transactionTags.txId.equals(tx.id))).get();
+
       transactions.add(
         TransactionMapper.toModel(
           transaction: tx,
           expenseDetail: expenseDetail,
           participants: participants,
           transferDetail: transferDetail,
+          tags: tags.map((r) => r.readTable(_db.tags)).toList(),
         ),
       );
     }

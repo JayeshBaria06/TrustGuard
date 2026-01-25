@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'expense.dart';
 import 'transfer.dart';
+import 'tag.dart';
 
 part 'transaction.freezed.dart';
 part 'transaction.g.dart';
@@ -20,6 +21,7 @@ class Transaction with _$Transaction {
     DateTime? deletedAt,
     ExpenseDetail? expenseDetail,
     TransferDetail? transferDetail,
+    @Default([]) List<Tag> tags,
   }) = _Transaction;
 
   factory Transaction.fromJson(Map<String, dynamic> json) =>
