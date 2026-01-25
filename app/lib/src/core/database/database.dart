@@ -5,11 +5,19 @@ import 'tables/members.dart';
 import 'tables/transactions.dart';
 import 'tables/expense_details.dart';
 import 'tables/expense_participants.dart';
+import 'tables/transfer_details.dart';
 
 part 'database.g.dart';
 
 @DriftDatabase(
-  tables: [Groups, Members, Transactions, ExpenseDetails, ExpenseParticipants],
+  tables: [
+    Groups,
+    Members,
+    Transactions,
+    ExpenseDetails,
+    ExpenseParticipants,
+    TransferDetails,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
