@@ -25,3 +25,12 @@ final groupProvider = FutureProvider.autoDispose.family<Group?, String>((
   final repository = ref.watch(groupRepositoryProvider);
   return repository.getGroupById(id);
 });
+
+/// Provider for a single group by its ID (stream).
+final groupStreamProvider = StreamProvider.autoDispose.family<Group?, String>((
+  ref,
+  id,
+) {
+  final repository = ref.watch(groupRepositoryProvider);
+  return repository.watchGroupById(id);
+});

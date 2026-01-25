@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/groups/presentation/group_form_screen.dart';
+import '../features/groups/presentation/group_overview_screen.dart';
 import '../features/groups/presentation/home_screen.dart';
 
 final router = GoRouter(
@@ -18,7 +19,7 @@ final router = GoRouter(
           path: 'group/:id',
           builder: (context, state) {
             final id = state.pathParameters['id']!;
-            return PlaceholderScreen(title: 'Group Overview: $id');
+            return GroupOverviewScreen(groupId: id);
           },
           routes: [
             GoRoute(

@@ -10,6 +10,7 @@ abstract class GroupRepository {
     bool includeArchived = false,
   });
   Future<model.Group?> getGroupById(String id);
+  Stream<model.Group?> watchGroupById(String id);
   Future<void> createGroup(model.Group group);
   Future<void> updateGroup(model.Group group);
   Future<void> archiveGroup(String id);
@@ -76,6 +77,14 @@ class DriftGroupRepository implements GroupRepository {
     final query = _db.select(_db.groups)..where((t) => t.id.equals(id));
     final row = await query.getSingleOrNull();
     return row != null ? GroupMapper.toModel(row) : null;
+  }
+
+  @override
+  Stream<model.Group?> watchGroupById(String id) {
+    final query = _db.select(_db.groups)..where((t) => t.id.equals(id));
+    return query.watchSingleOrNull().map(
+      (row) => row != null ? GroupMapper.toModel(row) : null,
+    );
   }
 
   @override
