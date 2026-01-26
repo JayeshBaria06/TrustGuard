@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../generated/app_localizations.dart';
 import '../ui/theme/app_theme.dart';
 import '../features/settings/providers/lock_providers.dart';
 import '../features/reminders/services/reminder_service.dart';
@@ -76,6 +77,12 @@ class _TrustGuardAppState extends ConsumerState<TrustGuardApp>
       themeMode: ThemeMode.system,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
+}
+
+extension AppLocalizationsX on BuildContext {
+  AppLocalizations get l10n => AppLocalizations.of(this)!;
 }

@@ -77,6 +77,10 @@ void main() {
     expect(find.text('Notifications'), findsOneWidget);
     expect(find.text('Enable Reminders'), findsOneWidget);
     expect(find.text('Data'), findsOneWidget);
+
+    // Scroll to bottom to find 'About'
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pumpAndSettle();
     expect(find.text('About'), findsOneWidget);
   });
 

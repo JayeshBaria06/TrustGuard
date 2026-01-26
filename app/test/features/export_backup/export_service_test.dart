@@ -104,7 +104,10 @@ void main() {
       // Assert
       final lines = csv.split('\n');
       expect(lines.length, 3); // Header + 2 rows
-      expect(lines[0], 'Date,Type,Amount,Payer/From,Participants/To,Note,Tags');
+      expect(
+        lines[0],
+        'Date,Type,Amount,Payer/From,Participants/To,Note,Tags,Original Amount,Original Currency,Exchange Rate',
+      );
 
       // Expense row
       expect(
