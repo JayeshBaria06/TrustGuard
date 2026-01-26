@@ -3,16 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/lock_providers.dart';
 import '../providers/notification_providers.dart';
+import 'debug_logs_screen.dart';
 import '../../../app/providers.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  int _developerTapCount = 0;
+  bool _developerMode = false;
+
+  @override
+  Widget build(BuildContext context) {
     final lockState = ref.watch(appLockStateProvider);
     final notificationsEnabled = ref.watch(notificationPermissionProvider);
     final rounding = ref.watch(roundingProvider);
+    final logsAsync = ref.watch(debugLogsProvider);
+    final hasLogs = logsAsync.valueOrNull?.isNotEmpty ?? false;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -106,10 +117,6 @@ class SettingsScreen extends ConsumerWidget {
                   );
                 }
               } else {
-                // In v1 we just track the permission,
-                // actual reminder scheduling is in 4.3.2/4.3.3
-                // We don't have a way to "revoke" permission programmatically on all platforms easily
-                // so we just show a message or track a separate 'remindersEnabled' flag in 4.3.2
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
@@ -129,10 +136,23 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(),
           _buildSectionHeader(context, 'About'),
-          const ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text('TrustGuard'),
-            subtitle: Text('Version 1.0.0'),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('TrustGuard'),
+            subtitle: const Text('Version 1.0.0'),
+            onTap: () {
+              if (!_developerMode) {
+                setState(() {
+                  _developerTapCount++;
+                  if (_developerTapCount >= 5) {
+                    _developerMode = true;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Developer mode enabled')),
+                    );
+                  }
+                });
+              }
+            },
           ),
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
@@ -144,6 +164,15 @@ class SettingsScreen extends ConsumerWidget {
               // TODO: Show privacy policy
             },
           ),
+          if (_developerMode || hasLogs) ...[
+            const Divider(),
+            _buildSectionHeader(context, 'Developer'),
+            ListTile(
+              leading: const Icon(Icons.bug_report_outlined),
+              title: const Text('Debug Logs'),
+              onTap: () => context.push('/settings/debug-logs'),
+            ),
+          ],
         ],
       ),
     );
