@@ -47,5 +47,9 @@
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>TrustGuard uses biometrics to unlock the app securely.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>TrustGuard needs camera access to scan receipts.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>TrustGuard needs photo library access to import receipt images.</string>
 </dict>
 </plist>
