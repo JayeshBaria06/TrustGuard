@@ -6,6 +6,7 @@ class SettingsService {
   SettingsService(this._prefs);
 
   static const String _roundingKey = 'rounding_decimal_places';
+  static const String _customKeypadKey = 'custom_keypad_enabled';
 
   int getRoundingDecimalPlaces() {
     return _prefs.getInt(_roundingKey) ?? 2;
@@ -13,5 +14,13 @@ class SettingsService {
 
   Future<void> setRoundingDecimalPlaces(int value) async {
     await _prefs.setInt(_roundingKey, value);
+  }
+
+  bool isCustomKeypadEnabled() {
+    return _prefs.getBool(_customKeypadKey) ?? true;
+  }
+
+  Future<void> setCustomKeypadEnabled(bool value) async {
+    await _prefs.setBool(_customKeypadKey, value);
   }
 }

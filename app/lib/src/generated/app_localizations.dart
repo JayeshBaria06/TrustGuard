@@ -963,6 +963,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} rows could not be imported'**
   String importErrors(num count);
+
+  /// No description provided for @useCustomKeypad.
+  ///
+  /// In en, this message translates to:
+  /// **'Use calculator-style input'**
+  String get useCustomKeypad;
+
+  /// No description provided for @useCustomKeypadDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a specialized keypad for amount entry'**
+  String get useCustomKeypadDesc;
 }
 
 class _AppLocalizationsDelegate

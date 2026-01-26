@@ -509,4 +509,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String importErrors(num count) {
     return '$count rows could not be imported';
   }
+
+  @override
+  String get useCustomKeypad => 'Use calculator-style input';
+
+  @override
+  String get useCustomKeypadDesc => 'Use a specialized keypad for amount entry';
 }

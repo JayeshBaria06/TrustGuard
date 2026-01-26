@@ -16,6 +16,7 @@ import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
 import '../../../ui/animations/shake_widget.dart';
 import '../../../ui/components/member_avatar_selector.dart';
+import '../../../ui/components/amount_input_field.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../ocr/models/receipt_data.dart';
 import '../../ocr/providers/ocr_providers.dart';
@@ -441,6 +442,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
     final groupAsync = ref.watch(groupStreamProvider(widget.groupId));
+    final useCustomKeypad = ref.watch(customKeypadProvider);
     final isEdit = widget.transactionId != null;
 
     if (isEdit && !_isInitialized) {
@@ -548,41 +550,71 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            if (useCustomKeypad && !_isDifferentCurrency) ...[
+                              Card(
+                                margin: const EdgeInsets.only(
+                                  bottom: AppTheme.space24,
+                                ),
+                                elevation: 0,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerLow,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: AmountInputField(
+                                  initialValue: MoneyUtils.toMinorUnits(
+                                    double.tryParse(_amountController.text) ??
+                                        0,
+                                  ),
+                                  currencyCode: currency,
+                                  onChanged: (value) {
+                                    _amountController.text =
+                                        MoneyUtils.fromMinorUnits(
+                                          value,
+                                        ).toStringAsFixed(2);
+                                    setState(() {});
+                                  },
+                                ),
+                              ),
+                            ],
                             _buildCurrencySection(currency),
                             const SizedBox(height: AppTheme.space16),
-                            Semantics(
-                              label: 'Expense amount in $currency',
-                              child: TextFormField(
-                                controller: _amountController,
-                                decoration: InputDecoration(
-                                  labelText: _isDifferentCurrency
-                                      ? 'Converted Amount ($currency)'
-                                      : 'Amount',
-                                  prefixText: '$currency ',
-                                  border: const OutlineInputBorder(),
+                            if (!useCustomKeypad || _isDifferentCurrency) ...[
+                              Semantics(
+                                label: 'Expense amount in $currency',
+                                child: TextFormField(
+                                  controller: _amountController,
+                                  decoration: InputDecoration(
+                                    labelText: _isDifferentCurrency
+                                        ? 'Converted Amount ($currency)'
+                                        : 'Amount',
+                                    prefixText: '$currency ',
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  onChanged: (value) {
+                                    if (_isDifferentCurrency) {
+                                      _calculateOriginalAmount();
+                                    }
+                                  },
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter an amount';
+                                    }
+                                    if (double.tryParse(value) == null) {
+                                      return 'Please enter a valid number';
+                                    }
+                                    return null;
+                                  },
+                                  autofocus: !isEdit,
                                 ),
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                      decimal: true,
-                                    ),
-                                onChanged: (value) {
-                                  if (_isDifferentCurrency) {
-                                    _calculateOriginalAmount();
-                                  }
-                                },
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter an amount';
-                                  }
-                                  if (double.tryParse(value) == null) {
-                                    return 'Please enter a valid number';
-                                  }
-                                  return null;
-                                },
-                                autofocus: !isEdit,
                               ),
-                            ),
-                            const SizedBox(height: AppTheme.space16),
+                              const SizedBox(height: AppTheme.space16),
+                            ],
                             Semantics(
                               label: 'Expense note',
                               child: TextFormField(

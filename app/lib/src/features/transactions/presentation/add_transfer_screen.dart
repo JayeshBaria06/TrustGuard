@@ -12,6 +12,7 @@ import '../../../core/models/transaction.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
 import '../../../ui/animations/shake_widget.dart';
+import '../../../ui/components/amount_input_field.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../groups/presentation/groups_providers.dart';
 import 'transactions_providers.dart';
@@ -325,6 +326,7 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
     final groupAsync = ref.watch(groupStreamProvider(widget.groupId));
+    final useCustomKeypad = ref.watch(customKeypadProvider);
     final isEdit = widget.transactionId != null;
 
     if (isEdit && !_isInitialized) {
@@ -411,31 +413,61 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Semantics(
-                              label: 'Transfer amount in $currency',
-                              child: TextFormField(
-                                controller: _amountController,
-                                decoration: InputDecoration(
-                                  labelText: 'Amount',
-                                  prefixText: '$currency ',
-                                  border: const OutlineInputBorder(),
+                            if (useCustomKeypad) ...[
+                              Card(
+                                margin: const EdgeInsets.only(
+                                  bottom: AppTheme.space24,
                                 ),
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                      decimal: true,
-                                    ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter an amount';
-                                  }
-                                  if (double.tryParse(value) == null) {
-                                    return 'Please enter a valid number';
-                                  }
-                                  return null;
-                                },
-                                autofocus: !isEdit,
+                                elevation: 0,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerLow,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: AmountInputField(
+                                  initialValue: MoneyUtils.toMinorUnits(
+                                    double.tryParse(_amountController.text) ??
+                                        0,
+                                  ),
+                                  currencyCode: currency,
+                                  onChanged: (value) {
+                                    _amountController.text =
+                                        MoneyUtils.fromMinorUnits(
+                                          value,
+                                        ).toStringAsFixed(2);
+                                    setState(() {});
+                                  },
+                                ),
                               ),
-                            ),
+                            ],
+                            if (!useCustomKeypad) ...[
+                              Semantics(
+                                label: 'Transfer amount in $currency',
+                                child: TextFormField(
+                                  controller: _amountController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Amount',
+                                    prefixText: '$currency ',
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter an amount';
+                                    }
+                                    if (double.tryParse(value) == null) {
+                                      return 'Please enter a valid number';
+                                    }
+                                    return null;
+                                  },
+                                  autofocus: !isEdit,
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: AppTheme.space16),
                             Semantics(
                               label: 'Transfer note',

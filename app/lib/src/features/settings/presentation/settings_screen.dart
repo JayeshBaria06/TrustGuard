@@ -26,6 +26,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final themeState = ref.watch(themeStateProvider);
     final notificationsEnabled = ref.watch(notificationPermissionProvider);
     final rounding = ref.watch(roundingProvider);
+    final useCustomKeypad = ref.watch(customKeypadProvider);
     final logsAsync = ref.watch(debugLogsProvider);
     final hasLogs = logsAsync.valueOrNull?.isNotEmpty ?? false;
     final storageUsageAsync = ref.watch(attachmentStorageUsageProvider);
@@ -53,6 +54,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 }
               },
             ),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.apps_outlined),
+            title: Text(context.l10n.useCustomKeypad),
+            subtitle: Text(context.l10n.useCustomKeypadDesc),
+            value: useCustomKeypad,
+            onChanged: (value) =>
+                ref.read(customKeypadProvider.notifier).setEnabled(value),
           ),
           const Divider(),
           _buildSectionHeader(context, context.l10n.appearanceSection),

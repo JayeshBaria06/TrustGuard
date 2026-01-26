@@ -65,6 +65,25 @@ final roundingProvider = NotifierProvider<RoundingNotifier, int>(
   () => RoundingNotifier(),
 );
 
+/// Provider for custom keypad setting.
+class CustomKeypadNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final service = ref.watch(settingsServiceProvider);
+    return service.isCustomKeypadEnabled();
+  }
+
+  Future<void> setEnabled(bool value) async {
+    final service = ref.read(settingsServiceProvider);
+    await service.setCustomKeypadEnabled(value);
+    state = value;
+  }
+}
+
+final customKeypadProvider = NotifierProvider<CustomKeypadNotifier, bool>(
+  () => CustomKeypadNotifier(),
+);
+
 /// Provider for formatting money based on rounding settings.
 typedef MoneyFormatter =
     String Function(int minorUnits, {String currencyCode, String? locale});

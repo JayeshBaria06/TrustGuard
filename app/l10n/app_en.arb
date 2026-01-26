@@ -279,5 +279,7 @@
         "type": "num"
       }
     }
-  }
+  },
+  "useCustomKeypad": "Use calculator-style input",
+  "useCustomKeypadDesc": "Use a specialized keypad for amount entry"
 }
