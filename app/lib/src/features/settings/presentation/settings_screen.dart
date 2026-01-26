@@ -103,9 +103,7 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.import_export),
             title: const Text('Backup & Restore'),
-            onTap: () {
-              // TODO: Navigate to backup screen
-            },
+            onTap: () => context.push('/settings/backup'),
           ),
           const Divider(),
           _buildSectionHeader(context, 'About'),
