@@ -31,6 +31,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
+  final _originalAmountController = TextEditingController();
+  final _exchangeRateController = TextEditingController();
+
   DateTime _occurredAt = DateTime.now();
   String? _payerMemberId;
   final Set<String> _selectedMemberIds = {};
@@ -41,10 +44,28 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   bool _isInitialized = false;
   DateTime _createdAt = DateTime.now();
 
+  bool _isDifferentCurrency = false;
+  String _originalCurrencyCode = 'USD';
+
+  static const _commonCurrencies = [
+    'USD',
+    'EUR',
+    'GBP',
+    'JPY',
+    'CAD',
+    'AUD',
+    'INR',
+    'CHF',
+    'CNY',
+    'SGD',
+  ];
+
   @override
   void dispose() {
     _amountController.dispose();
     _noteController.dispose();
+    _originalAmountController.dispose();
+    _exchangeRateController.dispose();
     for (var controller in _customAmountControllers.values) {
       controller.dispose();
     }
@@ -129,6 +150,18 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         throw Exception(validation.errorMessage);
       }
 
+      double? exchangeRate;
+      String? originalCurrencyCode;
+      int? originalAmountMinor;
+
+      if (_isDifferentCurrency) {
+        exchangeRate = double.tryParse(_exchangeRateController.text);
+        originalCurrencyCode = _originalCurrencyCode;
+        originalAmountMinor = MoneyUtils.toMinorUnits(
+          double.tryParse(_originalAmountController.text) ?? 0,
+        );
+      }
+
       final repository = ref.read(transactionRepositoryProvider);
       final allTags = ref.read(tagsProvider(widget.groupId)).value ?? [];
       final selectedTags = allTags
@@ -149,6 +182,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
           totalAmountMinor: totalAmountMinor,
           splitType: _splitType,
           participants: participants,
+          exchangeRate: exchangeRate,
+          originalCurrencyCode: originalCurrencyCode,
+          originalAmountMinor: originalAmountMinor,
         ),
         tags: selectedTags,
       );
@@ -175,6 +211,26 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     }
   }
 
+  void _calculateConvertedAmount() {
+    final original = double.tryParse(_originalAmountController.text);
+    final rate = double.tryParse(_exchangeRateController.text);
+    if (original != null && rate != null) {
+      setState(() {
+        _amountController.text = (original * rate).toStringAsFixed(2);
+      });
+    }
+  }
+
+  void _calculateOriginalAmount() {
+    final converted = double.tryParse(_amountController.text);
+    final rate = double.tryParse(_exchangeRateController.text);
+    if (converted != null && rate != null && rate > 0) {
+      setState(() {
+        _originalAmountController.text = (converted / rate).toStringAsFixed(2);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
@@ -185,16 +241,29 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       final txAsync = ref.watch(transactionProvider(widget.transactionId!));
       txAsync.whenData((tx) {
         if (tx != null && tx.expenseDetail != null) {
+          final detail = tx.expenseDetail!;
           _amountController.text = MoneyUtils.fromMinorUnits(
-            tx.expenseDetail!.totalAmountMinor,
+            detail.totalAmountMinor,
           ).toStringAsFixed(2);
           _noteController.text = tx.note;
           _occurredAt = tx.occurredAt;
           _createdAt = tx.createdAt;
-          _payerMemberId = tx.expenseDetail!.payerMemberId;
-          _splitType = tx.expenseDetail!.splitType;
+          _payerMemberId = detail.payerMemberId;
+          _splitType = detail.splitType;
+
+          if (detail.exchangeRate != null) {
+            _isDifferentCurrency = true;
+            _exchangeRateController.text = detail.exchangeRate!.toString();
+            _originalCurrencyCode = detail.originalCurrencyCode ?? 'USD';
+            if (detail.originalAmountMinor != null) {
+              _originalAmountController.text = MoneyUtils.fromMinorUnits(
+                detail.originalAmountMinor!,
+              ).toStringAsFixed(2);
+            }
+          }
+
           _selectedMemberIds.clear();
-          for (var p in tx.expenseDetail!.participants) {
+          for (var p in detail.participants) {
             _selectedMemberIds.add(p.memberId);
             if (_splitType == SplitType.custom) {
               _customAmountControllers[p.memberId] = TextEditingController(
@@ -251,12 +320,16 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            _buildCurrencySection(currency),
+                            const SizedBox(height: AppTheme.space16),
                             Semantics(
                               label: 'Expense amount in $currency',
                               child: TextFormField(
                                 controller: _amountController,
                                 decoration: InputDecoration(
-                                  labelText: 'Amount',
+                                  labelText: _isDifferentCurrency
+                                      ? 'Converted Amount ($currency)'
+                                      : 'Amount',
                                   prefixText: '$currency ',
                                   border: const OutlineInputBorder(),
                                 ),
@@ -264,6 +337,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                     const TextInputType.numberWithOptions(
                                       decimal: true,
                                     ),
+                                onChanged: (value) {
+                                  if (_isDifferentCurrency) {
+                                    _calculateOriginalAmount();
+                                  }
+                                },
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter an amount';
@@ -475,6 +553,93 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, s) => Center(child: Text('Error loading members: $e')),
       ),
+    );
+  }
+
+  Widget _buildCurrencySection(String groupCurrency) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SwitchListTile(
+          title: const Text('Different Currency?'),
+          subtitle: const Text('Record expense in another currency'),
+          value: _isDifferentCurrency,
+          onChanged: (value) {
+            setState(() {
+              _isDifferentCurrency = value;
+              if (_isDifferentCurrency &&
+                  _exchangeRateController.text.isEmpty) {
+                _exchangeRateController.text = '1.0';
+                _originalAmountController.text = _amountController.text;
+              }
+            });
+          },
+          contentPadding: EdgeInsets.zero,
+        ),
+        if (_isDifferentCurrency) ...[
+          const SizedBox(height: AppTheme.space8),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: DropdownButtonFormField<String>(
+                  initialValue: _originalCurrencyCode,
+                  items: _commonCurrencies
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _originalCurrencyCode = value);
+                    }
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Currency',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppTheme.space16),
+              Expanded(
+                flex: 3,
+                child: TextFormField(
+                  controller: _originalAmountController,
+                  decoration: InputDecoration(
+                    labelText: 'Original Amount',
+                    prefixText: '$_originalCurrencyCode ',
+                    border: const OutlineInputBorder(),
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  onChanged: (value) => _calculateConvertedAmount(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.space16),
+          TextFormField(
+            controller: _exchangeRateController,
+            decoration: InputDecoration(
+              labelText: 'Exchange Rate',
+              helperText: '1 $_originalCurrencyCode = ? $groupCurrency',
+              border: const OutlineInputBorder(),
+            ),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (value) => _calculateConvertedAmount(),
+          ),
+          const SizedBox(height: AppTheme.space8),
+          if (double.tryParse(_exchangeRateController.text) != null &&
+              double.tryParse(_originalAmountController.text) != null)
+            Text(
+              'Preview: ${_originalAmountController.text} $_originalCurrencyCode × ${_exchangeRateController.text} = '
+              '${(double.tryParse(_originalAmountController.text)! * double.tryParse(_exchangeRateController.text)!).toStringAsFixed(2)} $groupCurrency',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+        ],
+      ],
     );
   }
 
