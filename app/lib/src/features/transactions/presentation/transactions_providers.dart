@@ -8,3 +8,10 @@ final transactionsByGroupProvider = StreamProvider.autoDispose
       final repository = ref.watch(transactionRepositoryProvider);
       return repository.watchTransactionsByGroup(groupId);
     });
+
+/// Provider for a single transaction by its ID.
+final transactionProvider = FutureProvider.autoDispose
+    .family<Transaction?, String>((ref, id) {
+      final repository = ref.watch(transactionRepositoryProvider);
+      return repository.getTransactionById(id);
+    });
