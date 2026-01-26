@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/app.dart';
 import '../../../../app/providers.dart';
+import '../../../../ui/animations/animation_config.dart';
+import '../../../../ui/components/rolling_number_text.dart';
 import '../../../../ui/theme/app_theme.dart';
 import '../../models/global_balance_summary.dart';
 import '../../providers/dashboard_providers.dart';
@@ -101,19 +103,17 @@ class _DashboardCardContent extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(l10n.netBalance, style: theme.textTheme.labelMedium),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: Text(
-                        formatMoney(summary.netBalance),
-                        key: ValueKey(summary.netBalance),
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: summary.netBalance > 0
-                              ? Colors.green
-                              : (summary.netBalance < 0
-                                    ? colorScheme.error
-                                    : null),
-                        ),
+                    RollingNumberText(
+                      value: summary.netBalance,
+                      formatFn: formatMoney,
+                      duration: AnimationConfig.numberCountDuration,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: summary.netBalance > 0
+                            ? Colors.green
+                            : (summary.netBalance < 0
+                                  ? colorScheme.error
+                                  : null),
                       ),
                     ),
                   ],
@@ -164,15 +164,13 @@ class _BalanceItem extends StatelessWidget {
           style: theme.textTheme.labelSmall?.copyWith(color: theme.hintColor),
         ),
         const SizedBox(height: AppTheme.space4),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: Text(
-            formatMoney(amount),
-            key: ValueKey(amount),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+        RollingNumberText(
+          value: amount,
+          formatFn: formatMoney,
+          duration: AnimationConfig.numberCountDuration,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: color,
           ),
         ),
       ],
