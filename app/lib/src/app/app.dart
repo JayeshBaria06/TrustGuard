@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../generated/app_localizations.dart';
 import '../ui/theme/app_theme.dart';
 import '../features/settings/providers/lock_providers.dart';
+import '../features/settings/providers/theme_providers.dart';
 import '../features/reminders/services/reminder_service.dart';
+
 import 'providers.dart';
 import 'router.dart';
 
@@ -69,13 +71,16 @@ class _TrustGuardAppState extends ConsumerState<TrustGuardApp>
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
+    final themeState = ref.watch(themeStateProvider);
+    final themeService = ref.watch(themeServiceProvider);
 
     return MaterialApp.router(
       title: 'TrustGuard',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeService.toFlutterThemeMode(themeState.currentMode),
       routerConfig: router,
+
       debugShowCheckedModeBanner: false,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
