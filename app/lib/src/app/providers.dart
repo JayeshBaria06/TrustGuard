@@ -109,6 +109,7 @@ final exportServiceProvider = Provider<ExportService>((ref) {
 /// Provider for [BackupService].
 final backupServiceProvider = Provider<BackupService>((ref) {
   return BackupService(
+    database: ref.watch(databaseProvider),
     groupRepository: ref.watch(groupRepositoryProvider),
     memberRepository: ref.watch(memberRepositoryProvider),
     transactionRepository: ref.watch(transactionRepositoryProvider),
