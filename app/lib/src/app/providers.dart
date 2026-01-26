@@ -10,6 +10,7 @@ import '../core/database/repositories/transaction_repository.dart';
 import '../core/database/repositories/tag_repository.dart';
 import '../core/database/repositories/reminder_repository.dart';
 import '../core/database/repositories/attachment_repository.dart';
+import '../core/database/repositories/recurring_transaction_repository.dart';
 import '../core/platform/app_lock_service.dart';
 import '../core/platform/notification_service.dart';
 import '../core/platform/local_log_service.dart';
@@ -23,6 +24,7 @@ import '../features/settings/services/settings_service.dart';
 import '../features/onboarding/services/onboarding_service.dart';
 import '../features/onboarding/models/onboarding_state.dart';
 import '../features/transactions/services/attachment_service.dart';
+import '../features/transactions/services/recurrence_service.dart';
 
 /// Provider for the [AppDatabase] singleton.
 
@@ -135,6 +137,13 @@ final attachmentRepositoryProvider = Provider<AttachmentRepository>((ref) {
   return DriftAttachmentRepository(db);
 });
 
+/// Provider for [RecurringTransactionRepository].
+final recurringTransactionRepositoryProvider =
+    Provider<RecurringTransactionRepository>((ref) {
+      final db = ref.watch(databaseProvider);
+      return DriftRecurringTransactionRepository(db);
+    });
+
 /// Provider for watching reminder settings for a group.
 final reminderSettingsProvider =
     StreamProvider.family<ReminderSettings?, String>((ref, groupId) {
@@ -217,6 +226,16 @@ final localLogServiceProvider = Provider<LocalLogService>((ref) {
 /// Provider for [AttachmentService].
 final attachmentServiceProvider = Provider<AttachmentService>((ref) {
   return AttachmentService();
+});
+
+/// Provider for [RecurrenceService].
+final recurrenceServiceProvider = Provider<RecurrenceService>((ref) {
+  final recurringRepo = ref.watch(recurringTransactionRepositoryProvider);
+  final transactionRepo = ref.watch(transactionRepositoryProvider);
+  return RecurrenceService(
+    recurringRepo: recurringRepo,
+    transactionRepo: transactionRepo,
+  );
 });
 
 /// Provider for attachment storage usage.

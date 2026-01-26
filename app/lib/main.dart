@@ -11,10 +11,18 @@ void main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
       final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
 
       final logService = LocalLogService();
       await logService.init();
       await logService.info('App started');
+
+      // Initialize recurrence check on startup
+      await container
+          .read(recurrenceServiceProvider)
+          .checkAndCreateDueTransactions();
 
       FlutterError.onError = (details) {
         FlutterError.presentError(details);
@@ -30,8 +38,8 @@ void main() async {
       };
 
       runApp(
-        ProviderScope(
-          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        UncontrolledProviderScope(
+          container: container,
           child: const TrustGuardApp(),
         ),
       );
