@@ -7,6 +7,7 @@ import '../../../features/transactions/services/attachment_service.dart';
 
 abstract class TransactionRepository {
   Future<List<model.Transaction>> getAllTransactions();
+  Stream<List<model.Transaction>> watchAllTransactions();
   Future<List<model.Transaction>> getTransactionsByGroup(
     String groupId, {
     bool includeDeleted = false,
@@ -58,6 +59,22 @@ class DriftTransactionRepository implements TransactionRepository {
 
     final rows = await query.get();
     return _mapRowsToTransactions(rows);
+  }
+
+  @override
+  Stream<List<model.Transaction>> watchAllTransactions() {
+    final query = _db.select(_db.transactions).join([
+      leftOuterJoin(
+        _db.expenseDetails,
+        _db.expenseDetails.txId.equalsExp(_db.transactions.id),
+      ),
+      leftOuterJoin(
+        _db.transferDetails,
+        _db.transferDetails.txId.equalsExp(_db.transactions.id),
+      ),
+    ]);
+    query.orderBy([OrderingTerm.desc(_db.transactions.occurredAt)]);
+    return query.watch().asyncMap(_mapRowsToTransactions);
   }
 
   @override
