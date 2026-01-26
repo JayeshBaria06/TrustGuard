@@ -1,0 +1,18 @@
+{
+  "appTitle": "TrustGuard",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "transactionsTitle": "Transactions",
+  "@transactionsTitle": {
+    "description": "Title for the transactions screen"
+  },
+  "groupsTitle": "Groups",
+  "@groupsTitle": {
+    "description": "Title for the groups screen"
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Title for the settings screen"
+  }
+}
