@@ -19,6 +19,7 @@ class TagsScreen extends ConsumerWidget {
       body: tagsWithUsageAsync.when(
         data: (tags) => tags.isEmpty
             ? EmptyState(
+                svgPath: 'assets/illustrations/no_results.svg',
                 icon: Icons.label_off_outlined,
                 title: 'No tags',
                 message:

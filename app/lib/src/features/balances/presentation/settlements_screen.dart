@@ -6,6 +6,7 @@ import '../../../app/providers.dart';
 import '../../../core/models/member.dart';
 import '../../../core/models/settlement_suggestion.dart';
 import '../../../core/utils/money.dart';
+import '../../../ui/components/empty_state.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../groups/presentation/groups_providers.dart';
@@ -38,22 +39,11 @@ class SettlementsScreen extends ConsumerWidget {
                   SettlementService.computeSettlementSuggestions(balances);
 
               if (suggestions.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.check_circle_outline,
-                        size: 64,
-                        color: Colors.green,
-                      ),
-                      const SizedBox(height: AppTheme.space16),
-                      Text(
-                        l10n.allSettledUp,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                    ],
-                  ),
+                return EmptyState(
+                  svgPath: 'assets/illustrations/all_settled.svg',
+                  icon: Icons.check_circle_outline,
+                  title: l10n.allSettledUp,
+                  message: '', // Message is optional or can be empty
                 );
               }
 

@@ -68,6 +68,9 @@ class HomeScreen extends ConsumerWidget {
                   child: Semantics(
                     label: 'No groups container',
                     child: EmptyState(
+                      svgPath: showArchived
+                          ? null
+                          : 'assets/illustrations/empty_groups.svg',
                       icon: showArchived
                           ? Icons.archive_outlined
                           : Icons.group_off_outlined,

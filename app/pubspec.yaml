@@ -64,6 +64,7 @@ dependencies:
   package_info_plus: ^8.1.2
   flutter_slidable: ^3.1.0
   shimmer: ^3.0.0
+  flutter_svg: ^2.0.10
 
 
 
@@ -103,6 +104,7 @@ flutter:
 
   assets:
     - assets/docs/
+    - assets/illustrations/
 
 
   # To add assets to your application, add an assets section, like this:

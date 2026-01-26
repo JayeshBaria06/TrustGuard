@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/app_theme.dart';
 
 class EmptyState extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String? svgPath;
   final String title;
   final String message;
   final String? actionLabel;
@@ -10,12 +12,16 @@ class EmptyState extends StatelessWidget {
 
   const EmptyState({
     super.key,
-    required this.icon,
+    this.icon,
+    this.svgPath,
     required this.title,
     required this.message,
     this.actionLabel,
     this.onActionPressed,
-  });
+  }) : assert(
+         icon != null || svgPath != null,
+         'Either icon or svgPath must be provided',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +31,23 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: Theme.of(context).colorScheme.outline),
+            if (svgPath != null)
+              SvgPicture.asset(
+                svgPath!,
+                height: 160,
+                width: 160,
+                placeholderBuilder: (context) => const SizedBox(
+                  height: 160,
+                  width: 160,
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (icon != null)
+              Icon(
+                icon,
+                size: 64,
+                color: Theme.of(context).colorScheme.outline,
+              ),
             const SizedBox(height: AppTheme.space24),
             Text(
               title,

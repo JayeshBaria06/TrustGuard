@@ -153,6 +153,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                 if (transactions.isEmpty) {
                   return filter.isEmpty
                       ? EmptyState(
+                          svgPath: 'assets/illustrations/no_transactions.svg',
                           icon: Icons.receipt_long_outlined,
                           title: context.l10n.noTransactionsYet,
                           message: context.l10n.noTransactionsMessage,
@@ -162,6 +163,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                           ),
                         )
                       : EmptyState(
+                          svgPath: 'assets/illustrations/no_results.svg',
                           icon: Icons.search_off,
                           title: context.l10n.noResultsFound,
                           message: context.l10n.tryAdjustingFilters,
