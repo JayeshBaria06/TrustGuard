@@ -11,6 +11,7 @@ class AppLockState with _$AppLockState {
     @Default(0) int failedAttempts,
     @Default(false) bool isBiometricEnabled,
     @Default(true) bool lockOnBackground,
+    @Default(false) bool requireUnlockToExport,
     @Default(false) bool isInitialized,
     @Default(false) bool hasPin,
     DateTime? blockUntil,
@@ -32,10 +33,13 @@ class AppLockNotifier extends Notifier<AppLockState> {
     final service = ref.read(appLockServiceProvider);
     final hasPin = await service.isPinSet();
     final isBiometricEnabled = await service.isBiometricEnabled();
+    final requireUnlockToExport = await service
+        .isRequireUnlockToExportEnabled();
     state = state.copyWith(
       isLocked: hasPin,
       hasPin: hasPin,
       isBiometricEnabled: isBiometricEnabled,
+      requireUnlockToExport: requireUnlockToExport,
       isInitialized: true,
     );
   }
@@ -98,6 +102,12 @@ class AppLockNotifier extends Notifier<AppLockState> {
 
   void setLockOnBackground(bool value) {
     state = state.copyWith(lockOnBackground: value);
+  }
+
+  Future<void> setRequireUnlockToExport(bool value) async {
+    final service = ref.read(appLockServiceProvider);
+    await service.setRequireUnlockToExportEnabled(value);
+    state = state.copyWith(requireUnlockToExport: value);
   }
 }
 

@@ -43,6 +43,15 @@ class SettingsScreen extends ConsumerWidget {
                   .read(appLockStateProvider.notifier)
                   .setLockOnBackground(value),
             ),
+            SwitchListTile(
+              secondary: const Icon(Icons.shield_outlined),
+              title: const Text('Export Protection'),
+              subtitle: const Text('Require unlock to export data'),
+              value: lockState.requireUnlockToExport,
+              onChanged: (value) => ref
+                  .read(appLockStateProvider.notifier)
+                  .setRequireUnlockToExport(value),
+            ),
             ListTile(
               leading: const Icon(Icons.no_encryption_gmailerrorred_outlined),
               title: const Text('Remove PIN'),

@@ -163,5 +163,38 @@ void main() {
         ).called(1);
       });
     });
+
+    group('Export Protection', () {
+      test(
+        'isRequireUnlockToExportEnabled returns correct preference',
+        () async {
+          when(
+            () => mockStorage.read(key: 'app_lock_require_unlock_to_export'),
+          ).thenAnswer((_) async => 'true');
+
+          final result = await appLockService.isRequireUnlockToExportEnabled();
+
+          expect(result, isTrue);
+        },
+      );
+
+      test('setRequireUnlockToExportEnabled stores preference', () async {
+        when(
+          () => mockStorage.write(
+            key: any(named: 'key'),
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async {});
+
+        await appLockService.setRequireUnlockToExportEnabled(true);
+
+        verify(
+          () => mockStorage.write(
+            key: 'app_lock_require_unlock_to_export',
+            value: 'true',
+          ),
+        ).called(1);
+      });
+    });
   });
 }

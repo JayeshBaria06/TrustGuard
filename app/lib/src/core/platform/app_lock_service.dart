@@ -14,6 +14,7 @@ class AppLockService {
   static const _pinHashKey = 'app_lock_pin_hash';
   static const _pinSaltKey = 'app_lock_pin_salt';
   static const _biometricEnabledKey = 'app_lock_biometric_enabled';
+  static const _requireUnlockToExportKey = 'app_lock_require_unlock_to_export';
 
   AppLockService(this._storage, this._auth);
 
@@ -81,6 +82,20 @@ class AppLockService {
   /// Sets the user's preference for biometric unlock.
   Future<void> setBiometricEnabled(bool enabled) async {
     await _storage.write(key: _biometricEnabledKey, value: enabled.toString());
+  }
+
+  /// Checks if the user has enabled export protection.
+  Future<bool> isRequireUnlockToExportEnabled() async {
+    final value = await _storage.read(key: _requireUnlockToExportKey);
+    return value == 'true';
+  }
+
+  /// Sets the user's preference for export protection.
+  Future<void> setRequireUnlockToExportEnabled(bool enabled) async {
+    await _storage.write(
+      key: _requireUnlockToExportKey,
+      value: enabled.toString(),
+    );
   }
 
   String _generateSalt() {

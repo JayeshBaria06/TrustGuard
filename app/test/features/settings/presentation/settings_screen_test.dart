@@ -17,6 +17,12 @@ void main() {
     when(() => mockService.isPinSet()).thenAnswer((_) async => false);
     when(() => mockService.isBiometricEnabled()).thenAnswer((_) async => false);
     when(() => mockService.setBiometricEnabled(any())).thenAnswer((_) async {});
+    when(
+      () => mockService.isRequireUnlockToExportEnabled(),
+    ).thenAnswer((_) async => false);
+    when(
+      () => mockService.setRequireUnlockToExportEnabled(any()),
+    ).thenAnswer((_) async {});
   });
 
   Widget createTestWidget(ProviderContainer container) {
@@ -56,6 +62,7 @@ void main() {
 
     expect(find.text('Change PIN'), findsOneWidget);
     expect(find.text('Biometric Unlock'), findsOneWidget);
+    expect(find.text('Export Protection'), findsOneWidget);
     expect(find.text('Remove PIN'), findsOneWidget);
   });
 
@@ -77,5 +84,29 @@ void main() {
 
     verify(() => mockService.setBiometricEnabled(true)).called(1);
     expect(container.read(appLockStateProvider).isBiometricEnabled, true);
+  });
+
+  testWidgets('toggling export protection updates state', (tester) async {
+    when(() => mockService.isPinSet()).thenAnswer((_) async => true);
+
+    final container = ProviderContainer(
+      overrides: [appLockServiceProvider.overrideWithValue(mockService)],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(appLockStateProvider.notifier).init();
+    await tester.pumpWidget(createTestWidget(container));
+    await tester.pumpAndSettle();
+
+    // Export Protection is the second switch (after Lock on Background)
+    final switchFinder = find.widgetWithText(
+      SwitchListTile,
+      'Export Protection',
+    );
+    await tester.tap(switchFinder);
+    await tester.pumpAndSettle();
+
+    verify(() => mockService.setRequireUnlockToExportEnabled(true)).called(1);
+    expect(container.read(appLockStateProvider).requireUnlockToExport, true);
   });
 }
