@@ -7,6 +7,7 @@ import 'package:trustguard/src/core/database/database.dart';
 import 'package:trustguard/src/features/groups/presentation/group_overview_screen.dart';
 import 'package:trustguard/src/core/models/group.dart' as model;
 import 'package:uuid/uuid.dart';
+import '../../../helpers/shared_prefs_helper.dart';
 
 void main() {
   late AppDatabase db;
@@ -38,9 +39,11 @@ void main() {
           ),
         );
 
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(db)],
+        overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
         child: MaterialApp(home: GroupOverviewScreen(groupId: groupId)),
       ),
     );
@@ -62,9 +65,11 @@ void main() {
   testWidgets('GroupOverviewScreen shows error when group not found', (
     WidgetTester tester,
   ) async {
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(db)],
+        overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
         child: const MaterialApp(
           home: GroupOverviewScreen(groupId: 'non-existent'),
         ),

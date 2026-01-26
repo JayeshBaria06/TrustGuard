@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/utils/money.dart';
+import '../../../app/providers.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../groups/presentation/groups_providers.dart';
 import '../services/balance_service.dart';
@@ -15,6 +15,7 @@ class BalancesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final balancesAsync = ref.watch(groupBalancesProvider(groupId));
     final groupAsync = ref.watch(groupStreamProvider(groupId));
+    final formatMoney = ref.watch(moneyFormatterProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Balances')),
@@ -54,7 +55,7 @@ class BalancesScreen extends ConsumerWidget {
                             : 'owes',
                       ),
                       trailing: Text(
-                        MoneyUtils.format(
+                        formatMoney(
                           balance.netAmountMinor.abs(),
                           currencyCode: currency,
                         ),

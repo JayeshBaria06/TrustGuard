@@ -9,6 +9,7 @@ import 'package:trustguard/src/features/export_backup/presentation/export_screen
 import 'package:trustguard/src/features/export_backup/services/export_service.dart';
 import 'package:trustguard/src/features/transactions/presentation/transactions_providers.dart';
 import 'package:trustguard/src/features/settings/providers/lock_providers.dart';
+import '../../helpers/shared_prefs_helper.dart';
 
 class MockExportService extends Mock implements ExportService {}
 
@@ -23,10 +24,12 @@ void main() {
     mockExportService = MockExportService();
   });
 
-  Widget createWidget(String groupId) {
+  Future<Widget> createWidget(String groupId) async {
+    final prefsOverrides = await getSharedPrefsOverride();
     return ProviderScope(
       overrides: [
         exportServiceProvider.overrideWithValue(mockExportService),
+        ...prefsOverrides,
         groupStreamProvider(groupId).overrideWith(
           (ref) => Stream.value(
             Group(
@@ -47,7 +50,7 @@ void main() {
 
   testWidgets('ExportScreen renders correctly', (tester) async {
     const groupId = 'group-1';
-    await tester.pumpWidget(createWidget(groupId));
+    await tester.pumpWidget(await createWidget(groupId));
     await tester.pumpAndSettle();
 
     expect(find.text('Export Group Data'), findsOneWidget);
@@ -62,7 +65,7 @@ void main() {
       () => mockExportService.shareCsv(groupId, any()),
     ).thenAnswer((_) async {});
 
-    await tester.pumpWidget(createWidget(groupId));
+    await tester.pumpWidget(await createWidget(groupId));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Export as CSV'));
@@ -77,7 +80,7 @@ void main() {
       () => mockExportService.shareTextSummary(groupId, any()),
     ).thenAnswer((_) async {});
 
-    await tester.pumpWidget(createWidget(groupId));
+    await tester.pumpWidget(await createWidget(groupId));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Share Text Summary'));

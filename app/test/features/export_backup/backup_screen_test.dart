@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:trustguard/src/app/providers.dart';
 import 'package:trustguard/src/features/export_backup/presentation/backup_screen.dart';
 import 'package:trustguard/src/features/export_backup/services/backup_service.dart';
+import '../../helpers/shared_prefs_helper.dart';
 
 class MockBackupService extends Mock implements BackupService {}
 
@@ -17,9 +18,13 @@ void main() {
     registerFallbackValue(File(''));
   });
 
-  Widget createWidget() {
+  Future<Widget> createWidget() async {
+    final prefsOverrides = await getSharedPrefsOverride();
     return ProviderScope(
-      overrides: [backupServiceProvider.overrideWithValue(mockBackupService)],
+      overrides: [
+        backupServiceProvider.overrideWithValue(mockBackupService),
+        ...prefsOverrides,
+      ],
       child: const MaterialApp(home: BackupScreen()),
     );
   }
@@ -27,7 +32,7 @@ void main() {
   testWidgets('BackupScreen displays cards for backup and restore', (
     tester,
   ) async {
-    await tester.pumpWidget(createWidget());
+    await tester.pumpWidget(await createWidget());
 
     expect(find.text('Backup & Restore'), findsOneWidget);
     expect(find.text('Create Backup'), findsOneWidget);
@@ -39,7 +44,7 @@ void main() {
   testWidgets('tapping Create Backup calls shareBackup', (tester) async {
     when(() => mockBackupService.shareBackup()).thenAnswer((_) async {});
 
-    await tester.pumpWidget(createWidget());
+    await tester.pumpWidget(await createWidget());
 
     await tester.tap(find.text('Create and Share Backup'));
     await tester.pump();
@@ -53,7 +58,7 @@ void main() {
       () => mockBackupService.shareBackup(),
     ).thenThrow(Exception('Export failed'));
 
-    await tester.pumpWidget(createWidget());
+    await tester.pumpWidget(await createWidget());
 
     await tester.tap(find.text('Create and Share Backup'));
     await tester.pumpAndSettle();

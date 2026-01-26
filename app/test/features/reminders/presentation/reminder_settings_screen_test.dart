@@ -10,6 +10,7 @@ import 'package:trustguard/src/core/models/reminder_settings.dart';
 import 'package:trustguard/src/core/platform/notification_service.dart';
 import 'package:trustguard/src/features/reminders/presentation/reminder_settings_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/shared_prefs_helper.dart';
 
 class MockNotificationService extends Mock implements NotificationService {}
 
@@ -60,6 +61,8 @@ void main() {
     final groupId = const Uuid().v4();
     await setupGroup(groupId);
 
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -67,6 +70,7 @@ void main() {
           notificationServiceProvider.overrideWithValue(
             mockNotificationService,
           ),
+          ...prefsOverrides,
         ],
         child: MaterialApp(home: ReminderSettingsScreen(groupId: groupId)),
       ),

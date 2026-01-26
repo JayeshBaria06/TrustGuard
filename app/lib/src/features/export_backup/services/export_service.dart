@@ -8,17 +8,21 @@ import '../../../core/models/transaction.dart';
 import '../../../core/utils/money.dart';
 import '../../balances/services/balance_service.dart';
 import '../../balances/services/settlement_service.dart';
+import '../../settings/services/settings_service.dart';
 
 /// Service for generating and sharing export files (CSV, Text Summary).
 class ExportService {
   final TransactionRepository _transactionRepository;
   final MemberRepository _memberRepository;
+  final SettingsService _settingsService;
 
   ExportService({
     required TransactionRepository transactionRepository,
     required MemberRepository memberRepository,
+    required SettingsService settingsService,
   }) : _transactionRepository = transactionRepository,
-       _memberRepository = memberRepository;
+       _memberRepository = memberRepository,
+       _settingsService = settingsService;
 
   /// Generates a CSV string containing all transactions for a group.
   Future<String> generateCsv(String groupId) async {
@@ -37,6 +41,8 @@ class ExportService {
     // Header
     csvRows.add('Date,Type,Amount,Payer/From,Participants/To,Note,Tags');
 
+    final decimalDigits = _settingsService.getRoundingDecimalPlaces();
+
     for (final tx in transactions) {
       final date = formatter.format(tx.occurredAt);
       final type = tx.type.name;
@@ -51,7 +57,7 @@ class ExportService {
       if (tx.type == TransactionType.expense && tx.expenseDetail != null) {
         amount = MoneyUtils.fromMinorUnits(
           tx.expenseDetail!.totalAmountMinor,
-        ).toStringAsFixed(2);
+        ).toStringAsFixed(decimalDigits);
         from = memberNames[tx.expenseDetail!.payerMemberId] ?? 'Unknown';
         to =
             '"${tx.expenseDetail!.participants.map((p) => memberNames[p.memberId] ?? 'Unknown').join(', ').replaceAll('"', '""')}"';
@@ -59,7 +65,7 @@ class ExportService {
           tx.transferDetail != null) {
         amount = MoneyUtils.fromMinorUnits(
           tx.transferDetail!.amountMinor,
-        ).toStringAsFixed(2);
+        ).toStringAsFixed(decimalDigits);
         from = memberNames[tx.transferDetail!.fromMemberId] ?? 'Unknown';
         to = memberNames[tx.transferDetail!.toMemberId] ?? 'Unknown';
       }
@@ -92,6 +98,8 @@ class ExportService {
       balances,
     );
 
+    final decimalDigits = _settingsService.getRoundingDecimalPlaces();
+
     final buffer = StringBuffer();
     buffer.writeln('TrustGuard Summary: $groupName');
     buffer.writeln(
@@ -106,7 +114,7 @@ class ExportService {
       for (final b in balances) {
         final amount = MoneyUtils.fromMinorUnits(
           b.netAmountMinor.abs(),
-        ).toStringAsFixed(2);
+        ).toStringAsFixed(decimalDigits);
         if (b.netAmountMinor > 0) {
           buffer.writeln('${b.memberName}: Owed $amount');
         } else if (b.netAmountMinor < 0) {
@@ -125,7 +133,7 @@ class ExportService {
       for (final s in suggestions) {
         final amount = MoneyUtils.fromMinorUnits(
           s.amountMinor,
-        ).toStringAsFixed(2);
+        ).toStringAsFixed(decimalDigits);
         buffer.writeln('${s.fromMemberName} -> ${s.toMemberName}: $amount');
       }
     }

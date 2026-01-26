@@ -507,6 +507,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   }
 
   Widget _buildCustomSplitStatus(String currency) {
+    final formatMoney = ref.watch(moneyFormatterProvider);
     final totalAmountMinor = MoneyUtils.toMinorUnits(
       double.tryParse(_amountController.text) ?? 0,
     );
@@ -539,8 +540,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
           ),
           Text(
             isCorrect
-                ? MoneyUtils.format(totalAmountMinor, currencyCode: currency)
-                : '${difference > 0 ? 'Remaining' : 'Over'}: ${MoneyUtils.format(difference.abs(), currencyCode: currency)}',
+                ? formatMoney(totalAmountMinor, currencyCode: currency)
+                : '${difference > 0 ? 'Remaining' : 'Over'}: ${formatMoney(difference.abs(), currencyCode: currency)}',
             style: TextStyle(
               color: isCorrect ? Colors.green : Colors.red,
               fontWeight: FontWeight.bold,

@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../app/providers.dart';
 import '../../../core/models/transaction.dart';
-import '../../../core/utils/money.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../groups/presentation/groups_providers.dart';
 import 'transactions_providers.dart';
@@ -24,6 +23,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     final transactionAsync = ref.watch(transactionProvider(transactionId));
     final groupAsync = ref.watch(groupStreamProvider(groupId));
     final membersAsync = ref.watch(membersByGroupProvider(groupId));
+    final formatMoney = ref.watch(moneyFormatterProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -74,12 +74,18 @@ class TransactionDetailScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildHeader(context, tx, currency),
+                        _buildHeader(context, tx, currency, formatMoney),
                         const Divider(height: AppTheme.space32),
                         _buildInfoSection(context, tx, memberMap),
                         const SizedBox(height: AppTheme.space24),
                         if (tx.type == TransactionType.expense)
-                          _buildSplitSection(context, tx, memberMap, currency),
+                          _buildSplitSection(
+                            context,
+                            tx,
+                            memberMap,
+                            currency,
+                            formatMoney,
+                          ),
                         if (tx.tags.isNotEmpty) ...[
                           const SizedBox(height: AppTheme.space24),
                           _buildTagsSection(context, tx),
@@ -103,7 +109,12 @@ class TransactionDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, Transaction tx, String currency) {
+  Widget _buildHeader(
+    BuildContext context,
+    Transaction tx,
+    String currency,
+    MoneyFormatter formatMoney,
+  ) {
     final amount = tx.type == TransactionType.expense
         ? tx.expenseDetail?.totalAmountMinor ?? 0
         : tx.transferDetail?.amountMinor ?? 0;
@@ -135,7 +146,7 @@ class TransactionDetailScreen extends ConsumerWidget {
         ),
         const SizedBox(height: AppTheme.space8),
         Text(
-          MoneyUtils.format(amount, currencyCode: currency),
+          formatMoney(amount, currencyCode: currency),
           style: Theme.of(
             context,
           ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -219,6 +230,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     Transaction tx,
     Map<String, String> memberMap,
     String currency,
+    MoneyFormatter formatMoney,
   ) {
     final participants = tx.expenseDetail?.participants ?? [];
 
@@ -242,7 +254,7 @@ class TransactionDetailScreen extends ConsumerWidget {
               return ListTile(
                 title: Text(memberMap[p.memberId] ?? 'Unknown Member'),
                 trailing: Text(
-                  MoneyUtils.format(p.owedAmountMinor, currencyCode: currency),
+                  formatMoney(p.owedAmountMinor, currencyCode: currency),
                   style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
               );

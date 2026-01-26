@@ -8,6 +8,7 @@ import 'package:trustguard/src/core/models/expense.dart';
 import 'package:trustguard/src/core/models/transaction.dart';
 import 'package:trustguard/src/features/balances/presentation/settlements_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/shared_prefs_helper.dart';
 
 void main() {
   late AppDatabase db;
@@ -100,9 +101,11 @@ void main() {
           ),
         );
 
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(db)],
+        overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
         child: MaterialApp(home: SettlementsScreen(groupId: groupId)),
       ),
     );

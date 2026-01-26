@@ -7,6 +7,7 @@ import '../../../core/platform/notification_service.dart';
 import '../../../core/utils/money.dart';
 import '../../balances/services/balance_service.dart';
 import '../../../app/providers.dart';
+import '../../settings/services/settings_service.dart';
 
 /// Service to coordinate reminder settings and scheduled notifications.
 class ReminderService {
@@ -15,6 +16,7 @@ class ReminderService {
   final MemberRepository _memberRepo;
   final TransactionRepository _transactionRepo;
   final NotificationService _notificationService;
+  final SettingsService _settingsService;
 
   ReminderService({
     required ReminderRepository reminderRepo,
@@ -22,11 +24,13 @@ class ReminderService {
     required MemberRepository memberRepo,
     required TransactionRepository transactionRepo,
     required NotificationService notificationService,
+    required SettingsService settingsService,
   }) : _reminderRepo = reminderRepo,
        _groupRepo = groupRepo,
        _memberRepo = memberRepo,
        _transactionRepo = transactionRepo,
-       _notificationService = notificationService;
+       _notificationService = notificationService,
+       _settingsService = settingsService;
 
   /// Refreshes reminders for all groups.
   Future<void> refreshAllReminders() async {
@@ -70,8 +74,9 @@ class ReminderService {
       0,
       (sum, b) => sum + b.netAmountMinor.abs(),
     );
+    final decimalDigits = _settingsService.getRoundingDecimalPlaces();
     final summary =
-        'Total outstanding: ${MoneyUtils.format(totalDebt, currencyCode: group.currencyCode)} across ${netDebts.length} members.';
+        'Total outstanding: ${MoneyUtils.format(totalDebt, currencyCode: group.currencyCode, decimalDigits: decimalDigits)} across ${netDebts.length} members.';
 
     await _notificationService.scheduleReminder(
       groupId: groupId,
@@ -90,5 +95,6 @@ final reminderServiceProvider = Provider((ref) {
     memberRepo: ref.watch(memberRepositoryProvider),
     transactionRepo: ref.watch(transactionRepositoryProvider),
     notificationService: ref.watch(notificationServiceProvider),
+    settingsService: ref.watch(settingsServiceProvider),
   );
 });

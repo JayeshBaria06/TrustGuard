@@ -18,10 +18,15 @@ class MoneyUtils {
     int minorUnits, {
     String currencyCode = 'USD',
     String? locale,
+    int decimalDigits = 2,
   }) {
-    final format = NumberFormat.simpleCurrency(
+    final format = NumberFormat.currency(
       locale: locale,
-      name: currencyCode,
+      symbol: NumberFormat.simpleCurrency(
+        locale: locale,
+        name: currencyCode,
+      ).currencySymbol,
+      decimalDigits: decimalDigits,
     );
     return format.format(fromMinorUnits(minorUnits));
   }

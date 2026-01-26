@@ -7,7 +7,6 @@ import '../../../core/models/member.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/models/transaction_filter.dart';
-import '../../../core/utils/money.dart';
 import '../../../ui/components/empty_state.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../groups/presentation/groups_providers.dart';
@@ -316,7 +315,7 @@ class _ActiveFilterChips extends ConsumerWidget {
   }
 }
 
-class _TransactionListItem extends StatelessWidget {
+class _TransactionListItem extends ConsumerWidget {
   final Transaction transaction;
   final Map<String, String> memberMap;
   final String currencyCode;
@@ -330,7 +329,8 @@ class _TransactionListItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final formatMoney = ref.watch(moneyFormatterProvider);
     final isExpense = transaction.type == TransactionType.expense;
     final amount = isExpense
         ? transaction.expenseDetail?.totalAmountMinor ?? 0
@@ -377,7 +377,7 @@ class _TransactionListItem extends StatelessWidget {
           ),
           const SizedBox(width: AppTheme.space8),
           Text(
-            MoneyUtils.format(amount, currencyCode: currencyCode),
+            formatMoney(amount, currencyCode: currencyCode),
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: isExpense ? Colors.red[700] : Colors.blue[700],

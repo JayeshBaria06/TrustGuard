@@ -12,11 +12,33 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final lockState = ref.watch(appLockStateProvider);
     final notificationsEnabled = ref.watch(notificationPermissionProvider);
+    final rounding = ref.watch(roundingProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
+          _buildSectionHeader(context, 'Display'),
+          ListTile(
+            leading: const Icon(Icons.calculate_outlined),
+            title: const Text('Rounding'),
+            subtitle: Text('$rounding decimal places'),
+            trailing: DropdownButton<int>(
+              value: rounding,
+              underline: const SizedBox(),
+              items: const [
+                DropdownMenuItem(value: 0, child: Text('0')),
+                DropdownMenuItem(value: 1, child: Text('1')),
+                DropdownMenuItem(value: 2, child: Text('2')),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(roundingProvider.notifier).setRounding(value);
+                }
+              },
+            ),
+          ),
+          const Divider(),
           _buildSectionHeader(context, 'Security'),
           ListTile(
             leading: const Icon(Icons.pin),

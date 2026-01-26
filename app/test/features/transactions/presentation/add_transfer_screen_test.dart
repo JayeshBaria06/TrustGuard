@@ -6,6 +6,7 @@ import 'package:trustguard/src/app/providers.dart';
 import 'package:trustguard/src/core/database/database.dart';
 import 'package:trustguard/src/features/transactions/presentation/add_transfer_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/shared_prefs_helper.dart';
 
 void main() {
   late AppDatabase db;
@@ -59,9 +60,11 @@ void main() {
     final groupId = const Uuid().v4();
     await setupData(groupId);
 
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(db)],
+        overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
         child: MaterialApp(home: AddTransferScreen(groupId: groupId)),
       ),
     );

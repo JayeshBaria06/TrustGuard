@@ -6,6 +6,7 @@ import 'package:trustguard/src/features/transactions/presentation/add_expense_sc
 import 'package:trustguard/src/core/database/database.dart';
 import 'package:drift/native.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/shared_prefs_helper.dart';
 
 void main() {
   late AppDatabase db;
@@ -49,9 +50,11 @@ void main() {
           TagsCompanion.insert(id: tagId, groupId: groupId, name: 'Food'),
         );
 
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(db)],
+        overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
         child: MaterialApp(home: AddExpenseScreen(groupId: groupId)),
       ),
     );

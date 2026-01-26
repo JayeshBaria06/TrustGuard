@@ -12,6 +12,8 @@ import 'package:trustguard/src/core/models/expense.dart';
 import 'package:trustguard/src/core/models/reminder_settings.dart';
 import 'package:trustguard/src/features/reminders/services/reminder_service.dart';
 
+import 'package:trustguard/src/features/settings/services/settings_service.dart';
+
 class MockGroupRepository extends Mock implements GroupRepository {}
 
 class MockMemberRepository extends Mock implements MemberRepository {}
@@ -22,6 +24,8 @@ class MockReminderRepository extends Mock implements ReminderRepository {}
 
 class MockNotificationService extends Mock implements NotificationService {}
 
+class MockSettingsService extends Mock implements SettingsService {}
+
 void main() {
   late ReminderService reminderService;
   late MockGroupRepository mockGroupRepo;
@@ -29,6 +33,7 @@ void main() {
   late MockTransactionRepository mockTransactionRepo;
   late MockReminderRepository mockReminderRepo;
   late MockNotificationService mockNotificationService;
+  late MockSettingsService mockSettingsService;
 
   setUpAll(() {
     registerFallbackValue(ReminderSchedule.daily);
@@ -40,6 +45,7 @@ void main() {
     mockTransactionRepo = MockTransactionRepository();
     mockReminderRepo = MockReminderRepository();
     mockNotificationService = MockNotificationService();
+    mockSettingsService = MockSettingsService();
 
     reminderService = ReminderService(
       reminderRepo: mockReminderRepo,
@@ -47,9 +53,11 @@ void main() {
       memberRepo: mockMemberRepo,
       transactionRepo: mockTransactionRepo,
       notificationService: mockNotificationService,
+      settingsService: mockSettingsService,
     );
 
     // Default mock behavior
+    when(() => mockSettingsService.getRoundingDecimalPlaces()).thenReturn(2);
     when(
       () => mockNotificationService.cancelReminder(any()),
     ).thenAnswer((_) async {});

@@ -10,6 +10,7 @@ import 'package:trustguard/src/core/platform/app_lock_service.dart';
 import 'package:trustguard/src/core/database/database.dart';
 import 'package:trustguard/src/core/platform/notification_service.dart';
 import 'package:trustguard/src/features/reminders/services/reminder_service.dart';
+import '../helpers/shared_prefs_helper.dart';
 
 class MockAppLockService extends Mock implements AppLockService {}
 
@@ -55,6 +56,8 @@ void main() {
   ) async {
     final db = AppDatabase(NativeDatabase.memory());
 
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -64,6 +67,7 @@ void main() {
           ),
           reminderServiceProvider.overrideWithValue(mockReminderService),
           databaseProvider.overrideWithValue(db),
+          ...prefsOverrides,
         ],
         child: const TrustGuardApp(),
       ),
@@ -107,6 +111,8 @@ void main() {
   ) async {
     final db = AppDatabase(NativeDatabase.memory());
 
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -116,6 +122,7 @@ void main() {
           ),
           reminderServiceProvider.overrideWithValue(mockReminderService),
           databaseProvider.overrideWithValue(db),
+          ...prefsOverrides,
         ],
         child: const TrustGuardApp(),
       ),

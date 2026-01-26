@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trustguard/src/app/providers.dart';
 import 'package:trustguard/src/features/settings/presentation/settings_screen.dart';
 import 'package:trustguard/src/features/settings/providers/lock_providers.dart';
@@ -16,8 +17,11 @@ class MockNotificationService extends Mock implements NotificationService {}
 void main() {
   late MockAppLockService mockLockService;
   late MockNotificationService mockNotificationService;
+  late SharedPreferences prefs;
 
-  setUp(() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
     mockLockService = MockAppLockService();
     mockNotificationService = MockNotificationService();
 
@@ -55,6 +59,7 @@ void main() {
   testWidgets('renders settings screen correctly', (tester) async {
     final container = ProviderContainer(
       overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
         appLockServiceProvider.overrideWithValue(mockLockService),
         notificationServiceProvider.overrideWithValue(mockNotificationService),
       ],
@@ -65,6 +70,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('Display'), findsOneWidget);
+    expect(find.text('Rounding'), findsOneWidget);
     expect(find.text('Security'), findsOneWidget);
     expect(find.text('Set PIN'), findsOneWidget);
     expect(find.text('Notifications'), findsOneWidget);
@@ -78,6 +85,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
         appLockServiceProvider.overrideWithValue(mockLockService),
         notificationServiceProvider.overrideWithValue(mockNotificationService),
       ],
@@ -99,6 +107,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
         appLockServiceProvider.overrideWithValue(mockLockService),
         notificationServiceProvider.overrideWithValue(mockNotificationService),
       ],
@@ -123,6 +132,7 @@ void main() {
   testWidgets('toggling notifications requests permission', (tester) async {
     final container = ProviderContainer(
       overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
         appLockServiceProvider.overrideWithValue(mockLockService),
         notificationServiceProvider.overrideWithValue(mockNotificationService),
       ],

@@ -6,6 +6,7 @@ import 'package:trustguard/src/app/app.dart';
 import 'package:trustguard/src/app/providers.dart';
 import 'package:trustguard/src/core/database/database.dart';
 import 'package:trustguard/src/core/platform/notification_service.dart';
+import 'helpers/shared_prefs_helper.dart';
 
 class MockNotificationService extends Mock implements NotificationService {}
 
@@ -16,6 +17,8 @@ void main() {
     final mockNotificationService = MockNotificationService();
     when(() => mockNotificationService.init()).thenAnswer((_) async {});
 
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -23,6 +26,7 @@ void main() {
           notificationServiceProvider.overrideWithValue(
             mockNotificationService,
           ),
+          ...prefsOverrides,
         ],
         child: const TrustGuardApp(),
       ),

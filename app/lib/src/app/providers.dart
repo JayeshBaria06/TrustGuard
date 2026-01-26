@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/database/database.dart';
 import '../core/database/repositories/group_repository.dart';
 import '../core/database/repositories/member_repository.dart';
@@ -13,14 +14,63 @@ import '../core/platform/notification_service.dart';
 import '../core/models/tag_with_usage.dart';
 import '../core/models/reminder_settings.dart';
 import '../core/models/tag.dart' as model;
+import '../core/utils/money.dart';
 import '../features/export_backup/services/export_service.dart';
 import '../features/export_backup/services/backup_service.dart';
+import '../features/settings/services/settings_service.dart';
 
 /// Provider for the [AppDatabase] singleton.
 final databaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
   ref.onDispose(() => db.close());
   return db;
+});
+
+/// Provider for [SharedPreferences].
+/// MUST be overridden in ProviderScope during initialization.
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError('sharedPreferencesProvider must be overridden');
+});
+
+/// Provider for [SettingsService].
+final settingsServiceProvider = Provider<SettingsService>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return SettingsService(prefs);
+});
+
+/// Provider for rounding settings.
+class RoundingNotifier extends Notifier<int> {
+  @override
+  int build() {
+    final service = ref.watch(settingsServiceProvider);
+    return service.getRoundingDecimalPlaces();
+  }
+
+  Future<void> setRounding(int value) async {
+    final service = ref.read(settingsServiceProvider);
+    await service.setRoundingDecimalPlaces(value);
+    state = value;
+  }
+}
+
+final roundingProvider = NotifierProvider<RoundingNotifier, int>(
+  () => RoundingNotifier(),
+);
+
+/// Provider for formatting money based on rounding settings.
+typedef MoneyFormatter =
+    String Function(int minorUnits, {String currencyCode, String? locale});
+
+final moneyFormatterProvider = Provider<MoneyFormatter>((ref) {
+  final decimalDigits = ref.watch(roundingProvider);
+  return (int minorUnits, {String currencyCode = 'USD', String? locale}) {
+    return MoneyUtils.format(
+      minorUnits,
+      currencyCode: currencyCode,
+      locale: locale,
+      decimalDigits: decimalDigits,
+    );
+  };
 });
 
 /// Provider for [FlutterSecureStorage].
@@ -100,9 +150,11 @@ final tagsProvider = StreamProvider.family<List<model.Tag>, String>((
 final exportServiceProvider = Provider<ExportService>((ref) {
   final transactionRepository = ref.watch(transactionRepositoryProvider);
   final memberRepository = ref.watch(memberRepositoryProvider);
+  final settingsService = ref.watch(settingsServiceProvider);
   return ExportService(
     transactionRepository: transactionRepository,
     memberRepository: memberRepository,
+    settingsService: settingsService,
   );
 });
 

@@ -24,6 +24,16 @@ void main() {
 
       // Different currency
       expect(MoneyUtils.format(1050, currencyCode: 'EUR'), contains('10.50'));
+
+      // Custom decimal digits
+      expect(
+        MoneyUtils.format(1050, currencyCode: 'USD', decimalDigits: 0),
+        contains('11'),
+      ); // 10.50 rounds to 11 if 0 digits? Wait, NumberFormat behavior...
+      expect(
+        MoneyUtils.format(1050, currencyCode: 'USD', decimalDigits: 1),
+        contains('10.5'),
+      );
     });
 
     group('splitEqual', () {

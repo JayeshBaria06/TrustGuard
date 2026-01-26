@@ -7,6 +7,7 @@ import 'package:trustguard/src/core/database/database.dart';
 import 'package:trustguard/src/core/models/transaction.dart';
 import 'package:trustguard/src/features/transactions/presentation/tags_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/shared_prefs_helper.dart';
 
 void main() {
   late AppDatabase db;
@@ -34,9 +35,11 @@ void main() {
     final groupId = const Uuid().v4();
     await setupGroup(groupId);
 
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(db)],
+        overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
         child: MaterialApp(home: TagsScreen(groupId: groupId)),
       ),
     );
@@ -86,9 +89,11 @@ void main() {
         .into(db.transactionTags)
         .insert(TransactionTagsCompanion.insert(txId: txId, tagId: tagId));
 
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(db)],
+        overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
         child: MaterialApp(home: TagsScreen(groupId: groupId)),
       ),
     );
@@ -108,9 +113,11 @@ void main() {
     final groupId = const Uuid().v4();
     await setupGroup(groupId);
 
+    final prefsOverrides = await getSharedPrefsOverride();
+
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(db)],
+        overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
         child: MaterialApp(home: TagsScreen(groupId: groupId)),
       ),
     );

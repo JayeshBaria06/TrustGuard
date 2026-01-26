@@ -9,22 +9,31 @@ import 'package:trustguard/src/core/models/transfer.dart';
 import 'package:trustguard/src/core/models/tag.dart';
 import 'package:trustguard/src/features/export_backup/services/export_service.dart';
 
+import 'package:trustguard/src/features/settings/services/settings_service.dart';
+
 class MockTransactionRepository extends Mock implements TransactionRepository {}
 
 class MockMemberRepository extends Mock implements MemberRepository {}
+
+class MockSettingsService extends Mock implements SettingsService {}
 
 void main() {
   late ExportService exportService;
   late MockTransactionRepository mockTransactionRepository;
   late MockMemberRepository mockMemberRepository;
+  late MockSettingsService mockSettingsService;
 
   setUp(() {
     mockTransactionRepository = MockTransactionRepository();
     mockMemberRepository = MockMemberRepository();
+    mockSettingsService = MockSettingsService();
     exportService = ExportService(
       transactionRepository: mockTransactionRepository,
       memberRepository: mockMemberRepository,
+      settingsService: mockSettingsService,
     );
+
+    when(() => mockSettingsService.getRoundingDecimalPlaces()).thenReturn(2);
   });
 
   group('ExportService', () {
