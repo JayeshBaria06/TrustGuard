@@ -13,6 +13,8 @@ import '../features/transactions/presentation/tags_screen.dart';
 import '../features/transactions/presentation/transaction_detail_screen.dart';
 import '../features/transactions/presentation/transaction_list_screen.dart';
 import '../features/settings/presentation/lock_screen.dart';
+import '../features/settings/presentation/settings_screen.dart';
+import '../features/settings/presentation/pin_setup_screen.dart';
 import '../features/settings/providers/lock_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -139,7 +141,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const PlaceholderScreen(title: 'Settings'),
+        builder: (context, state) => const SettingsScreen(),
+        routes: [
+          GoRoute(
+            path: 'pin-setup',
+            builder: (context, state) => const PinSetupScreen(),
+          ),
+        ],
       ),
     ],
   );
