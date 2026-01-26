@@ -9,6 +9,7 @@ import 'package:trustguard/src/core/database/repositories/member_repository.dart
 import 'package:trustguard/src/core/database/repositories/transaction_repository.dart';
 import 'package:trustguard/src/core/database/repositories/tag_repository.dart';
 import 'package:trustguard/src/core/database/repositories/reminder_repository.dart';
+import 'package:trustguard/src/features/transactions/services/attachment_service.dart';
 import 'package:trustguard/src/features/export_backup/services/backup_service.dart';
 import 'package:trustguard/src/core/models/group.dart' as model;
 import 'package:trustguard/src/core/models/member.dart' as model;
@@ -20,6 +21,8 @@ import 'package:trustguard/src/core/models/backup.dart' as model;
 
 class MockFile extends Mock implements File {}
 
+class MockAttachmentService extends Mock implements AttachmentService {}
+
 void main() {
   late AppDatabase db;
   late BackupService backupService;
@@ -28,12 +31,14 @@ void main() {
   late TransactionRepository transactionRepository;
   late TagRepository tagRepository;
   late ReminderRepository reminderRepository;
+  late MockAttachmentService attachmentService;
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
+    attachmentService = MockAttachmentService();
     groupRepository = DriftGroupRepository(db);
     memberRepository = DriftMemberRepository(db);
-    transactionRepository = DriftTransactionRepository(db);
+    transactionRepository = DriftTransactionRepository(db, attachmentService);
     tagRepository = DriftTagRepository(db);
     reminderRepository = DriftReminderRepository(db);
 

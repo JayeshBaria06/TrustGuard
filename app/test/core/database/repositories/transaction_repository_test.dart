@@ -1,18 +1,24 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:trustguard/src/core/database/database.dart';
 import 'package:trustguard/src/core/database/repositories/transaction_repository.dart';
+import 'package:trustguard/src/features/transactions/services/attachment_service.dart';
 import 'package:trustguard/src/core/models/transaction.dart' as model;
 import 'package:trustguard/src/core/models/expense.dart' as model;
 import 'package:trustguard/src/core/models/transfer.dart' as model;
 
+class MockAttachmentService extends Mock implements AttachmentService {}
+
 void main() {
   late AppDatabase db;
   late TransactionRepository repository;
+  late MockAttachmentService attachmentService;
 
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
-    repository = DriftTransactionRepository(db);
+    attachmentService = MockAttachmentService();
+    repository = DriftTransactionRepository(db, attachmentService);
 
     // Setup: Create a group and members
     await db

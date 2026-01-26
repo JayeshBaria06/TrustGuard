@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trustguard/src/app/providers.dart';
 import 'package:trustguard/src/core/database/database.dart';
 import 'package:trustguard/src/core/database/repositories/transaction_repository.dart';
+import 'package:trustguard/src/features/transactions/services/attachment_service.dart';
 import 'package:trustguard/src/core/models/transaction.dart' as model;
 import 'package:trustguard/src/core/models/expense.dart' as model;
 import 'package:trustguard/src/core/models/transaction_filter.dart';
@@ -16,7 +17,7 @@ void main() {
 
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
-    repository = DriftTransactionRepository(db);
+    repository = DriftTransactionRepository(db, AttachmentService());
 
     // Setup: Create a group and members
     await db

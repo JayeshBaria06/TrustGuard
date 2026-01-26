@@ -3,6 +3,7 @@ import '../database.dart';
 import '../mappers/transaction_mapper.dart';
 import '../../models/transaction.dart' as model;
 import '../../models/transaction_filter.dart';
+import '../../../features/transactions/services/attachment_service.dart';
 
 abstract class TransactionRepository {
   Future<List<model.Transaction>> getAllTransactions();
@@ -33,12 +34,14 @@ abstract class TransactionRepository {
   Future<void> updateTransaction(model.Transaction transaction);
   Future<void> softDeleteTransaction(String id);
   Future<void> undoSoftDeleteTransaction(String id);
+  Future<void> hardDeleteTransaction(String id);
 }
 
 class DriftTransactionRepository implements TransactionRepository {
   final AppDatabase _db;
+  final AttachmentService _attachmentService;
 
-  DriftTransactionRepository(this._db);
+  DriftTransactionRepository(this._db, this._attachmentService);
 
   @override
   Future<List<model.Transaction>> getAllTransactions() async {
@@ -395,6 +398,27 @@ class DriftTransactionRepository implements TransactionRepository {
         updatedAt: Value(DateTime.now()),
       ),
     );
+  }
+
+  @override
+  Future<void> hardDeleteTransaction(String id) async {
+    await _attachmentService.deleteAllAttachments(id);
+    await _db.transaction(() async {
+      await (_db.delete(_db.attachments)..where((t) => t.txId.equals(id))).go();
+      await (_db.delete(
+        _db.expenseParticipants,
+      )..where((t) => t.txId.equals(id))).go();
+      await (_db.delete(
+        _db.expenseDetails,
+      )..where((t) => t.txId.equals(id))).go();
+      await (_db.delete(
+        _db.transferDetails,
+      )..where((t) => t.txId.equals(id))).go();
+      await (_db.delete(
+        _db.transactionTags,
+      )..where((t) => t.txId.equals(id))).go();
+      await (_db.delete(_db.transactions)..where((t) => t.id.equals(id))).go();
+    });
   }
 
   Future<List<model.Transaction>> _mapRowsToTransactions(

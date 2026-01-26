@@ -84,4 +84,20 @@ class AttachmentService {
     }
     return totalSize;
   }
+
+  Future<void> clearOrphanedAttachments(List<String> activeTxIds) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final attachmentsDir = Directory(p.join(directory.path, _attachmentDir));
+
+    if (!await attachmentsDir.exists()) return;
+
+    await for (final entity in attachmentsDir.list()) {
+      if (entity is Directory) {
+        final txId = p.basename(entity.path);
+        if (!activeTxIds.contains(txId)) {
+          await entity.delete(recursive: true);
+        }
+      }
+    }
+  }
 }

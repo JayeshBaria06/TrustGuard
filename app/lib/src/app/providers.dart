@@ -12,6 +12,7 @@ import '../core/database/repositories/reminder_repository.dart';
 import '../core/database/repositories/attachment_repository.dart';
 import '../core/platform/app_lock_service.dart';
 import '../core/platform/notification_service.dart';
+import '../core/platform/local_log_service.dart';
 import '../core/models/tag_with_usage.dart';
 import '../core/models/reminder_settings.dart';
 import '../core/models/tag.dart' as model;
@@ -21,9 +22,10 @@ import '../features/export_backup/services/backup_service.dart';
 import '../features/settings/services/settings_service.dart';
 import '../features/onboarding/services/onboarding_service.dart';
 import '../features/onboarding/models/onboarding_state.dart';
-import '../core/platform/local_log_service.dart';
+import '../features/transactions/services/attachment_service.dart';
 
 /// Provider for the [AppDatabase] singleton.
+
 final databaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
   ref.onDispose(() => db.close());
@@ -111,7 +113,8 @@ final memberRepositoryProvider = Provider<MemberRepository>((ref) {
 /// Provider for [TransactionRepository].
 final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
   final db = ref.watch(databaseProvider);
-  return DriftTransactionRepository(db);
+  final attachmentService = ref.watch(attachmentServiceProvider);
+  return DriftTransactionRepository(db, attachmentService);
 });
 
 /// Provider for [TagRepository].
@@ -209,4 +212,15 @@ final onboardingStateProvider =
 /// Provider for [LocalLogService].
 final localLogServiceProvider = Provider<LocalLogService>((ref) {
   return LocalLogService();
+});
+
+/// Provider for [AttachmentService].
+final attachmentServiceProvider = Provider<AttachmentService>((ref) {
+  return AttachmentService();
+});
+
+/// Provider for attachment storage usage.
+final attachmentStorageUsageProvider = FutureProvider.autoDispose<int>((ref) {
+  final service = ref.watch(attachmentServiceProvider);
+  return service.getStorageUsage();
 });

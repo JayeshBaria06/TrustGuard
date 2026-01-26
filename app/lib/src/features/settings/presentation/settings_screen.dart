@@ -24,6 +24,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final rounding = ref.watch(roundingProvider);
     final logsAsync = ref.watch(debugLogsProvider);
     final hasLogs = logsAsync.valueOrNull?.isNotEmpty ?? false;
+    final storageUsageAsync = ref.watch(attachmentStorageUsageProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -130,6 +131,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const Divider(),
           _buildSectionHeader(context, 'Data'),
           ListTile(
+            leading: const Icon(Icons.storage_outlined),
+            title: const Text('Attachment Storage'),
+            subtitle: storageUsageAsync.when(
+              data: (size) =>
+                  Text('${(size / 1024 / 1024).toStringAsFixed(2)} MB used'),
+              loading: () => const Text('Calculating...'),
+              error: (_, s) => const Text('Error calculating usage'),
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.cleaning_services_outlined),
+              onPressed: () =>
+                  _showClearOrphanedAttachmentsDialog(context, ref),
+              tooltip: 'Clear Orphaned',
+            ),
+          ),
+          ListTile(
             leading: const Icon(Icons.import_export),
             title: const Text('Backup & Restore'),
             onTap: () => context.push('/settings/backup'),
@@ -218,6 +235,47 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (confirmed == true) {
       await ref.read(appLockServiceProvider).removePin();
       await ref.read(appLockStateProvider.notifier).init();
+    }
+  }
+
+  Future<void> _showClearOrphanedAttachmentsDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Orphaned Attachments?'),
+        content: const Text(
+          'This will delete photos linked to transactions that no longer exist or were permanently deleted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Clear'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final transactions = await ref
+          .read(transactionRepositoryProvider)
+          .getAllTransactions();
+      final activeTxIds = transactions.map((t) => t.id).toList();
+      await ref
+          .read(attachmentServiceProvider)
+          .clearOrphanedAttachments(activeTxIds);
+      ref.invalidate(attachmentStorageUsageProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Orphaned attachments cleared')),
+        );
+      }
     }
   }
 }
