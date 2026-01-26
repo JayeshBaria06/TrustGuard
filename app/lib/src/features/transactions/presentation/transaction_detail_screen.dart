@@ -146,16 +146,13 @@ class TransactionDetailScreen extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Hero(
-              tag: 'transaction_icon_${tx.id}',
-              child: Icon(
-                tx.type == TransactionType.expense
-                    ? Icons.shopping_cart_outlined
-                    : Icons.swap_horiz,
-                color: tx.type == TransactionType.expense
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.primary,
-              ),
+            Icon(
+              tx.type == TransactionType.expense
+                  ? Icons.shopping_cart_outlined
+                  : Icons.swap_horiz,
+              color: tx.type == TransactionType.expense
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: AppTheme.space8),
             Text(

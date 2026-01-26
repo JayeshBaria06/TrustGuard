@@ -21,9 +21,7 @@ void main() {
     // db is closed inside tests
   });
 
-  testWidgets('Hero tags are consistent between list and detail', (
-    tester,
-  ) async {
+  testWidgets('OpenContainer wraps transaction items', (tester) async {
     final groupId = 'g1';
     final txId = 't1';
 
@@ -64,7 +62,6 @@ void main() {
 
     final prefsOverrides = await getSharedPrefsOverride();
 
-    // 1. Check Hero in List Screen
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
@@ -73,44 +70,33 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    await tester.pump(
-      const Duration(seconds: 1),
-    ); // Wait for data to load and skeletons to fade
+    await tester.pump(const Duration(seconds: 1)); // Wait for data
 
-    final listHero = find.byElementPredicate((element) {
-      if (element.widget is Hero) {
-        return (element.widget as Hero).tag == 'transaction_icon_$txId';
-      }
-      return false;
-    });
-    expect(listHero, findsOneWidget);
+    // Verify the transaction item is actually rendered
+    expect(find.text('Test Tx'), findsOneWidget);
 
-    // 2. Check Hero in Detail Screen
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: wrapWithLocalization(
-          TransactionDetailScreen(groupId: groupId, transactionId: txId),
-        ),
+    // Verify OpenContainer exists
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget.runtimeType.toString().startsWith('OpenContainer'),
       ),
+      findsOneWidget,
     );
 
-    await tester.pumpAndSettle();
-    await tester.pump(const Duration(seconds: 1)); // Skip skeletons
-
-    final detailHeroWithTag = find.byElementPredicate((element) {
+    // Verify Hero is NOT used for the icon anymore
+    final hero = find.byElementPredicate((element) {
       if (element.widget is Hero) {
         return (element.widget as Hero).tag == 'transaction_icon_$txId';
       }
       return false;
     });
-    expect(detailHeroWithTag, findsOneWidget);
+    expect(hero, findsNothing);
 
     await db.close();
     await tester.pump(Duration.zero);
   });
 
-  testWidgets('Navigation doesn\'t crash with Hero widgets', (tester) async {
+  testWidgets('OpenContainer opens TransactionDetailScreen', (tester) async {
     final groupId = 'g1';
     final txId = 't1';
 
@@ -157,17 +143,6 @@ void main() {
           localizationsDelegates: localizationsDelegates,
           supportedLocales: supportedLocales,
           home: TransactionListScreen(groupId: groupId),
-          onGenerateRoute: (settings) {
-            if (settings.name == '/detail') {
-              return MaterialPageRoute(
-                builder: (context) => TransactionDetailScreen(
-                  groupId: groupId,
-                  transactionId: txId,
-                ),
-              );
-            }
-            return null;
-          },
         ),
       ),
     );
@@ -177,13 +152,14 @@ void main() {
 
     expect(find.text('Test Tx'), findsOneWidget);
 
-    // Manually simulate navigation to avoid GoRouter dependency in TransactionListScreen onTap
-    final context = tester.element(find.byType(TransactionListScreen));
-    Navigator.of(context).pushNamed('/detail');
+    // Tap the transaction item to trigger OpenContainer
+    await tester.tap(find.text('Test Tx'));
 
-    // Verify transition doesn't crash
+    // Verify transition starts
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
+
+    // Wait for animation to finish
     await tester.pumpAndSettle();
 
     expect(find.byType(TransactionDetailScreen), findsOneWidget);

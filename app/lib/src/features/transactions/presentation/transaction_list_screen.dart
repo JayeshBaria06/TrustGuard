@@ -1,3 +1,4 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -12,8 +13,10 @@ import '../../../core/models/transaction_filter.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../ui/components/empty_state.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../../ui/animations/animation_config.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../groups/presentation/groups_providers.dart';
+import 'transaction_detail_screen.dart';
 import 'transaction_filter_sheet.dart';
 import 'transactions_providers.dart';
 import '../providers/paginated_transactions_provider.dart';
@@ -244,9 +247,6 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                 transaction: tx,
                                 memberMap: memberMap,
                                 currencyCode: currencyCode,
-                                onTap: () => context.push(
-                                  '/group/${widget.groupId}/transactions/${tx.id}',
-                                ),
                               );
                             },
                           ),
@@ -436,14 +436,12 @@ class _TransactionListItem extends ConsumerWidget {
   final Transaction transaction;
   final Map<String, String> memberMap;
   final String currencyCode;
-  final VoidCallback onTap;
 
   const _TransactionListItem({
     super.key,
     required this.transaction,
     required this.memberMap,
     required this.currencyCode,
-    required this.onTap,
   });
 
   @override
@@ -471,130 +469,150 @@ class _TransactionListItem extends ConsumerWidget {
       subTitle = '$fromName → $toName';
     }
 
-    return Slidable(
-      key: ValueKey(transaction.id),
-      startActionPane: ActionPane(
-        motion: const DrawerMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (context) {
-              HapticsService.lightTap();
-              final route = isExpense
-                  ? '/group/${transaction.groupId}/transactions/add-expense?txId=${transaction.id}'
-                  : '/group/${transaction.groupId}/transactions/add-transfer?txId=${transaction.id}';
-              context.push(route);
-            },
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-            icon: Icons.edit,
-            label: context.l10n.swipeToEdit,
-          ),
-        ],
-      ),
-      endActionPane: ActionPane(
-        motion: const DrawerMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (context) {
-              HapticsService.lightTap();
-              _confirmDelete(context, ref);
-            },
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            icon: Icons.delete,
-            label: context.l10n.swipeToDelete,
-          ),
-        ],
-      ),
-      child: ListTile(
-        onTap: onTap,
-        leading: Hero(
-          tag: 'transaction_icon_${transaction.id}',
-          child: CircleAvatar(
-            backgroundColor: isExpense
-                ? Colors.orange.withValues(alpha: 0.1)
-                : Colors.blue.withValues(alpha: 0.1),
-            child: Icon(
-              isExpense ? Icons.add_shopping_cart : Icons.sync_alt,
-              color: isExpense ? Colors.orange : Colors.blue,
-              size: 20,
-            ),
-          ),
-        ),
-        title: Row(
-          children: [
-            if (transaction.isRecurring) ...[
-              Icon(
-                Icons.repeat,
-                size: 14,
-                color: Theme.of(context).colorScheme.outline,
+    return OpenContainer(
+      closedElevation: 0,
+      closedColor: Colors.transparent,
+      openColor: Theme.of(context).scaffoldBackgroundColor,
+      transitionDuration: AnimationConfig.containerTransformDuration,
+      transitionType: ContainerTransitionType.fadeThrough,
+      closedShape: const RoundedRectangleBorder(),
+      openBuilder: (context, action) {
+        return TransactionDetailScreen(
+          groupId: transaction.groupId,
+          transactionId: transaction.id,
+        );
+      },
+      closedBuilder: (context, action) {
+        return Slidable(
+          key: ValueKey(transaction.id),
+          startActionPane: ActionPane(
+            motion: const DrawerMotion(),
+            children: [
+              SlidableAction(
+                onPressed: (context) {
+                  HapticsService.lightTap();
+                  final route = isExpense
+                      ? '/group/${transaction.groupId}/transactions/add-expense?txId=${transaction.id}'
+                      : '/group/${transaction.groupId}/transactions/add-transfer?txId=${transaction.id}';
+                  context.push(route);
+                },
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                icon: Icons.edit,
+                label: context.l10n.swipeToEdit,
               ),
-              const SizedBox(width: AppTheme.space4),
             ],
-            Expanded(
-              child: Text(
-                transaction.note.isNotEmpty
-                    ? transaction.note
-                    : context.l10n.noNote,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+          ),
+          endActionPane: ActionPane(
+            motion: const DrawerMotion(),
+            children: [
+              SlidableAction(
+                onPressed: (context) {
+                  HapticsService.lightTap();
+                  _confirmDelete(context, ref);
+                },
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: context.l10n.swipeToDelete,
+              ),
+            ],
+          ),
+          child: ListTile(
+            onTap: AnimationConfig.useReducedMotion(context)
+                ? () => context.push(
+                    '/group/${transaction.groupId}/transactions/${transaction.id}',
+                  )
+                : action,
+            leading: CircleAvatar(
+              backgroundColor: isExpense
+                  ? Colors.orange.withValues(alpha: 0.1)
+                  : Colors.blue.withValues(alpha: 0.1),
+              child: Icon(
+                isExpense ? Icons.add_shopping_cart : Icons.sync_alt,
+                color: isExpense ? Colors.orange : Colors.blue,
+                size: 20,
               ),
             ),
-            const SizedBox(width: AppTheme.space8),
-            Text(
-              formatMoney(amount, currencyCode: currencyCode),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isExpense ? Colors.red[700] : Colors.blue[700],
-              ),
-            ),
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            title: Row(
               children: [
-                Text(subTitle),
-                Text(
-                  dateStr,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                if (transaction.isRecurring) ...[
+                  Icon(
+                    Icons.repeat,
+                    size: 14,
                     color: Theme.of(context).colorScheme.outline,
+                  ),
+                  const SizedBox(width: AppTheme.space4),
+                ],
+                Expanded(
+                  child: Text(
+                    transaction.note.isNotEmpty
+                        ? transaction.note
+                        : context.l10n.noNote,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: AppTheme.space8),
+                Text(
+                  formatMoney(amount, currencyCode: currencyCode),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isExpense ? Colors.red[700] : Colors.blue[700],
                   ),
                 ),
               ],
             ),
-            if (transaction.tags.isNotEmpty) ...[
-              const SizedBox(height: AppTheme.space4),
-              Wrap(
-                spacing: AppTheme.space4,
-                children: transaction.tags.map((tag) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      tag.name,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSecondaryContainer,
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(subTitle),
+                    Text(
+                      dateStr,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ],
-        ),
-      ),
+                  ],
+                ),
+                if (transaction.tags.isNotEmpty) ...[
+                  const SizedBox(height: AppTheme.space4),
+                  Wrap(
+                    spacing: AppTheme.space4,
+                    children: transaction.tags.map((tag) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          tag.name,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSecondaryContainer,
+                              ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
