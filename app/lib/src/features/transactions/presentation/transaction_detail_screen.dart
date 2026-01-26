@@ -1,11 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../app/providers.dart';
 import '../../../core/models/transaction.dart';
+import '../../../core/models/attachment.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../groups/presentation/groups_providers.dart';
+import '../services/attachment_service.dart';
 import 'transactions_providers.dart';
 
 class TransactionDetailScreen extends ConsumerWidget {
@@ -23,6 +27,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     final transactionAsync = ref.watch(transactionProvider(transactionId));
     final groupAsync = ref.watch(groupStreamProvider(groupId));
     final membersAsync = ref.watch(membersByGroupProvider(groupId));
+    final attachmentsAsync = ref.watch(attachmentsProvider(transactionId));
     final formatMoney = ref.watch(moneyFormatterProvider);
 
     return Scaffold(
@@ -90,6 +95,13 @@ class TransactionDetailScreen extends ConsumerWidget {
                           const SizedBox(height: AppTheme.space24),
                           _buildTagsSection(context, tx),
                         ],
+                        const SizedBox(height: AppTheme.space24),
+                        _buildAttachmentsSection(
+                          context,
+                          ref,
+                          transactionId,
+                          attachmentsAsync,
+                        ),
                       ],
                     ),
                   );
@@ -285,6 +297,145 @@ class TransactionDetailScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildAttachmentsSection(
+    BuildContext context,
+    WidgetRef ref,
+    String txId,
+    AsyncValue<List<Attachment>> attachmentsAsync,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Attachments', style: Theme.of(context).textTheme.titleMedium),
+            IconButton(
+              icon: const Icon(Icons.add_a_photo_outlined),
+              onPressed: () => _addAttachment(context, ref, txId),
+              tooltip: 'Add Photo',
+            ),
+          ],
+        ),
+        const SizedBox(height: AppTheme.space8),
+        attachmentsAsync.when(
+          data: (attachments) {
+            if (attachments.isEmpty) {
+              return Text(
+                'No attachments yet',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).hintColor,
+                ),
+              );
+            }
+            return SizedBox(
+              height: 120,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: attachments.length,
+                itemBuilder: (context, index) {
+                  final attachment = attachments[index];
+                  return _AttachmentThumbnail(
+                    attachment: attachment,
+                    onDelete: () =>
+                        _confirmDeleteAttachment(context, ref, attachment),
+                  );
+                },
+              ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Text('Error loading attachments: $e'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _addAttachment(
+    BuildContext context,
+    WidgetRef ref,
+    String txId,
+  ) async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Camera'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
+    final image = await picker.pickImage(source: source);
+    if (image == null) return;
+
+    try {
+      final savedPath = await AttachmentService().saveAttachment(
+        txId,
+        File(image.path),
+      );
+      await ref
+          .read(attachmentRepositoryProvider)
+          .createAttachment(txId, savedPath, image.mimeType ?? 'image/jpeg');
+      ref.invalidate(attachmentsProvider(txId));
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save attachment: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteAttachment(
+    BuildContext context,
+    WidgetRef ref,
+    Attachment attachment,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Attachment?'),
+        content: const Text('This will permanently delete this photo.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await AttachmentService().deleteAttachment(attachment.path);
+      await ref
+          .read(attachmentRepositoryProvider)
+          .deleteAttachment(attachment.id);
+      ref.invalidate(attachmentsProvider(attachment.txId));
+    }
+  }
+
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -326,5 +477,79 @@ class TransactionDetailScreen extends ConsumerWidget {
         );
       }
     }
+  }
+}
+
+class _AttachmentThumbnail extends StatelessWidget {
+  final Attachment attachment;
+  final VoidCallback onDelete;
+
+  const _AttachmentThumbnail({
+    required this.attachment,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: () => _viewFullImage(context),
+        onLongPress: onDelete,
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                File(attachment.path),
+                width: 120,
+                height: 120,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stack) => Container(
+                  width: 120,
+                  height: 120,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.broken_image_outlined),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.zoom_in, size: 16, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _viewFullImage(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          backgroundColor: Colors.black,
+          body: Center(
+            child: InteractiveViewer(child: Image.file(File(attachment.path))),
+          ),
+        ),
+      ),
+    );
   }
 }

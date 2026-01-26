@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/models/transaction_filter.dart';
+import '../../../core/models/attachment.dart';
 
 /// Provider for the transaction filter of a group.
 final transactionFilterProvider = StateProvider.autoDispose
@@ -22,4 +23,11 @@ final transactionProvider = FutureProvider.autoDispose
     .family<Transaction?, String>((ref, id) {
       final repository = ref.watch(transactionRepositoryProvider);
       return repository.getTransactionById(id);
+    });
+
+/// Provider for transaction attachments.
+final attachmentsProvider = FutureProvider.autoDispose
+    .family<List<Attachment>, String>((ref, txId) {
+      final repo = ref.watch(attachmentRepositoryProvider);
+      return repo.getAttachmentsByTransaction(txId);
     });
