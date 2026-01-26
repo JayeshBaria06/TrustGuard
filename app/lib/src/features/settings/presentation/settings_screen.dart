@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../app/app.dart';
 import '../providers/lock_providers.dart';
 import '../providers/notification_providers.dart';
 import 'debug_logs_screen.dart';
@@ -27,14 +28,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final storageUsageAsync = ref.watch(attachmentStorageUsageProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(context.l10n.settingsTitle)),
       body: ListView(
         children: [
-          _buildSectionHeader(context, 'Display'),
+          _buildSectionHeader(context, context.l10n.display),
           ListTile(
             leading: const Icon(Icons.calculate_outlined),
-            title: const Text('Rounding'),
-            subtitle: Text('$rounding decimal places'),
+            title: Text(context.l10n.rounding),
+            subtitle: Text(context.l10n.decimalPlaces(rounding)),
             trailing: DropdownButton<int>(
               value: rounding,
               underline: const SizedBox(),
@@ -51,20 +52,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           const Divider(),
-          _buildSectionHeader(context, 'Security'),
+          _buildSectionHeader(context, context.l10n.security),
           ListTile(
             leading: const Icon(Icons.pin),
-            title: Text(lockState.hasPin ? 'Change PIN' : 'Set PIN'),
+            title: Text(
+              lockState.hasPin ? context.l10n.changePin : context.l10n.setPin,
+            ),
             subtitle: Text(
-              lockState.hasPin ? 'PIN is active' : 'PIN is not set',
+              lockState.hasPin
+                  ? context.l10n.pinActive
+                  : context.l10n.pinNotSet,
             ),
             onTap: () => context.push('/settings/pin-setup'),
           ),
           if (lockState.hasPin) ...[
             SwitchListTile(
               secondary: const Icon(Icons.fingerprint),
-              title: const Text('Biometric Unlock'),
-              subtitle: const Text('Use fingerprint or face ID'),
+              title: Text(context.l10n.biometricUnlock),
+              subtitle: Text(context.l10n.biometricUnlockDesc),
               value: lockState.isBiometricEnabled,
               onChanged: (value) => ref
                   .read(appLockStateProvider.notifier)
@@ -72,8 +77,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             SwitchListTile(
               secondary: const Icon(Icons.timer_outlined),
-              title: const Text('Lock on Background'),
-              subtitle: const Text('Lock app when minimized'),
+              title: Text(context.l10n.lockOnBackground),
+              subtitle: Text(context.l10n.lockOnBackgroundDesc),
               value: lockState.lockOnBackground,
               onChanged: (value) => ref
                   .read(appLockStateProvider.notifier)
@@ -81,8 +86,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             SwitchListTile(
               secondary: const Icon(Icons.shield_outlined),
-              title: const Text('Export Protection'),
-              subtitle: const Text('Require unlock to export data'),
+              title: Text(context.l10n.exportProtection),
+              subtitle: Text(context.l10n.exportProtectionDesc),
               value: lockState.requireUnlockToExport,
               onChanged: (value) => ref
                   .read(appLockStateProvider.notifier)
@@ -90,18 +95,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.no_encryption_gmailerrorred_outlined),
-              title: const Text('Remove PIN'),
+              title: Text(context.l10n.removePin),
               textColor: Theme.of(context).colorScheme.error,
               iconColor: Theme.of(context).colorScheme.error,
               onTap: () => _showRemovePinDialog(context, ref),
             ),
           ],
           const Divider(),
-          _buildSectionHeader(context, 'Notifications'),
+          _buildSectionHeader(context, context.l10n.notifications),
           SwitchListTile(
             secondary: const Icon(Icons.notifications_outlined),
-            title: const Text('Enable Reminders'),
-            subtitle: const Text('Get notified about unsettled balances'),
+            title: Text(context.l10n.enableReminders),
+            subtitle: Text(context.l10n.remindersDesc),
             value: notificationsEnabled,
             onChanged: (value) async {
               if (value) {
@@ -129,40 +134,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
           ),
           const Divider(),
-          _buildSectionHeader(context, 'Data'),
+          _buildSectionHeader(context, context.l10n.data),
           ListTile(
             leading: const Icon(Icons.storage_outlined),
-            title: const Text('Attachment Storage'),
+            title: Text(context.l10n.attachmentStorage),
             subtitle: storageUsageAsync.when(
-              data: (size) =>
-                  Text('${(size / 1024 / 1024).toStringAsFixed(2)} MB used'),
-              loading: () => const Text('Calculating...'),
+              data: (size) => Text(
+                context.l10n.mbUsed((size / 1024 / 1024).toStringAsFixed(2)),
+              ),
+              loading: () => Text(context.l10n.calculating),
               error: (_, s) => const Text('Error calculating usage'),
             ),
             trailing: IconButton(
               icon: const Icon(Icons.cleaning_services_outlined),
               onPressed: () =>
                   _showClearOrphanedAttachmentsDialog(context, ref),
-              tooltip: 'Clear Orphaned',
+              tooltip: context.l10n.clearOrphaned,
             ),
           ),
           ListTile(
             leading: const Icon(Icons.import_export),
-            title: const Text('Backup & Restore'),
+            title: Text(context.l10n.backupRestore),
             onTap: () => context.push('/settings/backup'),
           ),
           ListTile(
             leading: const Icon(Icons.help_outline),
-            title: const Text('Help & Privacy'),
-            subtitle: const Text('User guide and privacy policy'),
+            title: Text(context.l10n.helpPrivacy),
+            subtitle: Text(context.l10n.helpPrivacyDesc),
             onTap: () => context.push('/settings/help'),
           ),
           const Divider(),
-          _buildSectionHeader(context, 'About'),
+          _buildSectionHeader(context, context.l10n.about),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('TrustGuard'),
-            subtitle: const Text('Version 1.0.0'),
+            subtitle: Text(context.l10n.version('1.0.0')),
             onTap: () {
               if (!_developerMode) {
                 setState(() {
@@ -179,10 +185,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           if (_developerMode || hasLogs) ...[
             const Divider(),
-            _buildSectionHeader(context, 'Developer'),
+            _buildSectionHeader(context, context.l10n.developer),
             ListTile(
               leading: const Icon(Icons.bug_report_outlined),
-              title: const Text('Debug Logs'),
+              title: Text(context.l10n.debugLogs),
               onTap: () => context.push('/settings/debug-logs'),
             ),
           ],

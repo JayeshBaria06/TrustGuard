@@ -14,5 +14,144 @@
   "settingsTitle": "Settings",
   "@settingsTitle": {
     "description": "Title for the settings screen"
-  }
+  },
+  "newGroup": "New Group",
+  "createGroup": "Create Group",
+  "noGroupsYet": "No groups yet",
+  "noArchivedGroups": "No archived groups",
+  "noGroupsMessage": "Create a group to start tracking expenses and settlements with your friends.",
+  "noArchivedGroupsMessage": "Archived groups will appear here.",
+  "showArchived": "Show Archived",
+  "hideArchived": "Hide Archived",
+  "membersCount": "{count, plural, =1{1 member} other{{count} members}}",
+  "@membersCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "balance": "Balance",
+  "settled": "Settled",
+  "edit": "Edit",
+  "archive": "Archive",
+  "unarchive": "Unarchive",
+  "groupOptions": "Group options",
+  "errorLoadingGroups": "Error loading groups: {error}",
+  "@errorLoadingGroups": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "retry": "Retry",
+  "filterTransactions": "Filter Transactions",
+  "searchNote": "Search note...",
+  "clearSearch": "Clear Search",
+  "noTransactionsYet": "No transactions yet",
+  "noTransactionsMessage": "Add your first expense or transfer to get started.",
+  "noResultsFound": "No results found",
+  "tryAdjustingFilters": "Try adjusting your filters.",
+  "clearAllFilters": "Clear All Filters",
+  "tagFilter": "Tag: {name}",
+  "@tagFilter": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "memberFilter": "Member: {name}",
+  "@memberFilter": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "afterFilter": "After: {date}",
+  "@afterFilter": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "beforeFilter": "Before: {date}",
+  "@beforeFilter": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "addExpense": "Add Expense",
+  "addTransfer": "Add Transfer",
+  "noNote": "No note",
+  "paidByFor": "Paid by {payer} for {count, plural, =1{1 member} other{{count} members}}",
+  "@paidByFor": {
+    "placeholders": {
+      "payer": {
+        "type": "String"
+      },
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "display": "Display",
+  "rounding": "Rounding",
+  "decimalPlaces": "{count, plural, =1{1 decimal place} other{{count} decimal places}}",
+  "@decimalPlaces": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "security": "Security",
+  "setPin": "Set PIN",
+  "changePin": "Change PIN",
+  "pinActive": "PIN is active",
+  "pinNotSet": "PIN is not set",
+  "biometricUnlock": "Biometric Unlock",
+  "biometricUnlockDesc": "Use fingerprint or face ID",
+  "lockOnBackground": "Lock on Background",
+  "lockOnBackgroundDesc": "Lock app when minimized",
+  "exportProtection": "Export Protection",
+  "exportProtectionDesc": "Require unlock to export data",
+  "removePin": "Remove PIN",
+  "notifications": "Notifications",
+  "enableReminders": "Enable Reminders",
+  "remindersDesc": "Get notified about unsettled balances",
+  "data": "Data",
+  "attachmentStorage": "Attachment Storage",
+  "mbUsed": "{size} MB used",
+  "@mbUsed": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "calculating": "Calculating...",
+  "clearOrphaned": "Clear Orphaned",
+  "backupRestore": "Backup & Restore",
+  "helpPrivacy": "Help & Privacy",
+  "helpPrivacyDesc": "User guide and privacy policy",
+  "about": "About",
+  "version": "Version {version}",
+  "@version": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "developer": "Developer",
+  "debugLogs": "Debug Logs",
+  "cancel": "Cancel",
+  "remove": "Remove",
+  "clear": "Clear"
 }

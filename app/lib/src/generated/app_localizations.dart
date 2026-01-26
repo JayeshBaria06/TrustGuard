@@ -117,6 +117,402 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settingsTitle;
+
+  /// No description provided for @newGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'New Group'**
+  String get newGroup;
+
+  /// No description provided for @createGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Group'**
+  String get createGroup;
+
+  /// No description provided for @noGroupsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No groups yet'**
+  String get noGroupsYet;
+
+  /// No description provided for @noArchivedGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'No archived groups'**
+  String get noArchivedGroups;
+
+  /// No description provided for @noGroupsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a group to start tracking expenses and settlements with your friends.'**
+  String get noGroupsMessage;
+
+  /// No description provided for @noArchivedGroupsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived groups will appear here.'**
+  String get noArchivedGroupsMessage;
+
+  /// No description provided for @showArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Archived'**
+  String get showArchived;
+
+  /// No description provided for @hideArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Archived'**
+  String get hideArchived;
+
+  /// No description provided for @membersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 member} other{{count} members}}'**
+  String membersCount(num count);
+
+  /// No description provided for @balance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get balance;
+
+  /// No description provided for @settled.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get settled;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @archive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archive;
+
+  /// No description provided for @unarchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get unarchive;
+
+  /// No description provided for @groupOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Group options'**
+  String get groupOptions;
+
+  /// No description provided for @errorLoadingGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading groups: {error}'**
+  String errorLoadingGroups(String error);
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @filterTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter Transactions'**
+  String get filterTransactions;
+
+  /// No description provided for @searchNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Search note...'**
+  String get searchNote;
+
+  /// No description provided for @clearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Search'**
+  String get clearSearch;
+
+  /// No description provided for @noTransactionsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet'**
+  String get noTransactionsYet;
+
+  /// No description provided for @noTransactionsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first expense or transfer to get started.'**
+  String get noTransactionsMessage;
+
+  /// No description provided for @noResultsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get noResultsFound;
+
+  /// No description provided for @tryAdjustingFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your filters.'**
+  String get tryAdjustingFilters;
+
+  /// No description provided for @clearAllFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All Filters'**
+  String get clearAllFilters;
+
+  /// No description provided for @tagFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag: {name}'**
+  String tagFilter(String name);
+
+  /// No description provided for @memberFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Member: {name}'**
+  String memberFilter(String name);
+
+  /// No description provided for @afterFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'After: {date}'**
+  String afterFilter(String date);
+
+  /// No description provided for @beforeFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Before: {date}'**
+  String beforeFilter(String date);
+
+  /// No description provided for @addExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Expense'**
+  String get addExpense;
+
+  /// No description provided for @addTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Transfer'**
+  String get addTransfer;
+
+  /// No description provided for @noNote.
+  ///
+  /// In en, this message translates to:
+  /// **'No note'**
+  String get noNote;
+
+  /// No description provided for @paidByFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by {payer} for {count, plural, =1{1 member} other{{count} members}}'**
+  String paidByFor(String payer, num count);
+
+  /// No description provided for @display.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get display;
+
+  /// No description provided for @rounding.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounding'**
+  String get rounding;
+
+  /// No description provided for @decimalPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 decimal place} other{{count} decimal places}}'**
+  String decimalPlaces(num count);
+
+  /// No description provided for @security.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// No description provided for @setPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Set PIN'**
+  String get setPin;
+
+  /// No description provided for @changePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get changePin;
+
+  /// No description provided for @pinActive.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN is active'**
+  String get pinActive;
+
+  /// No description provided for @pinNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN is not set'**
+  String get pinNotSet;
+
+  /// No description provided for @biometricUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric Unlock'**
+  String get biometricUnlock;
+
+  /// No description provided for @biometricUnlockDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Use fingerprint or face ID'**
+  String get biometricUnlockDesc;
+
+  /// No description provided for @lockOnBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock on Background'**
+  String get lockOnBackground;
+
+  /// No description provided for @lockOnBackgroundDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock app when minimized'**
+  String get lockOnBackgroundDesc;
+
+  /// No description provided for @exportProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Protection'**
+  String get exportProtection;
+
+  /// No description provided for @exportProtectionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Require unlock to export data'**
+  String get exportProtectionDesc;
+
+  /// No description provided for @removePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove PIN'**
+  String get removePin;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @enableReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Reminders'**
+  String get enableReminders;
+
+  /// No description provided for @remindersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified about unsettled balances'**
+  String get remindersDesc;
+
+  /// No description provided for @data.
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get data;
+
+  /// No description provided for @attachmentStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment Storage'**
+  String get attachmentStorage;
+
+  /// No description provided for @mbUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} MB used'**
+  String mbUsed(String size);
+
+  /// No description provided for @calculating.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculating...'**
+  String get calculating;
+
+  /// No description provided for @clearOrphaned.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Orphaned'**
+  String get clearOrphaned;
+
+  /// No description provided for @backupRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & Restore'**
+  String get backupRestore;
+
+  /// No description provided for @helpPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & Privacy'**
+  String get helpPrivacy;
+
+  /// No description provided for @helpPrivacyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'User guide and privacy policy'**
+  String get helpPrivacyDesc;
+
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String version(String version);
+
+  /// No description provided for @developer.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer'**
+  String get developer;
+
+  /// No description provided for @debugLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug Logs'**
+  String get debugLogs;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
 }
 
 class _AppLocalizationsDelegate

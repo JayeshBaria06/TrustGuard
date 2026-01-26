@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../app/providers.dart';
+import '../../../app/app.dart';
 import '../../../core/models/member.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
@@ -60,7 +61,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transactions'),
+        title: Text(context.l10n.transactionsTitle),
         actions: [
           IconButton(
             icon: Badge(
@@ -76,7 +77,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     TransactionFilterSheet(groupId: widget.groupId),
               );
             },
-            tooltip: 'Filter Transactions',
+            tooltip: context.l10n.filterTransactions,
           ),
         ],
       ),
@@ -88,7 +89,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               label: 'Search transactions by note',
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search note...',
+                  hintText: context.l10n.searchNote,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: filter.searchQuery?.isNotEmpty ?? false
                       ? IconButton(
@@ -104,7 +105,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                               searchQuery: '',
                             );
                           },
-                          tooltip: 'Clear Search',
+                          tooltip: context.l10n.clearSearch,
                         )
                       : null,
                   border: OutlineInputBorder(
@@ -132,19 +133,18 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                   return filter.isEmpty
                       ? EmptyState(
                           icon: Icons.receipt_long_outlined,
-                          title: 'No transactions yet',
-                          message:
-                              'Add your first expense or transfer to get started.',
-                          actionLabel: 'Add Expense',
+                          title: context.l10n.noTransactionsYet,
+                          message: context.l10n.noTransactionsMessage,
+                          actionLabel: context.l10n.addExpense,
                           onActionPressed: () => context.push(
                             '/group/${widget.groupId}/transactions/add-expense',
                           ),
                         )
                       : EmptyState(
                           icon: Icons.search_off,
-                          title: 'No results found',
-                          message: 'Try adjusting your filters.',
-                          actionLabel: 'Clear All Filters',
+                          title: context.l10n.noResultsFound,
+                          message: context.l10n.tryAdjustingFilters,
+                          actionLabel: context.l10n.clearAllFilters,
                           onActionPressed: () {
                             ref
                                     .read(
@@ -247,7 +247,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                 Icons.add_shopping_cart,
                 color: Colors.orange,
               ),
-              title: const Text('Add Expense'),
+              title: Text(context.l10n.addExpense),
               onTap: () {
                 context.pop();
                 context.push(
@@ -257,7 +257,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.sync_alt, color: Colors.blue),
-              title: const Text('Add Transfer'),
+              title: Text(context.l10n.addTransfer),
               onTap: () {
                 context.pop();
                 context.push(
@@ -301,7 +301,7 @@ class _ActiveFilterChips extends ConsumerWidget {
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: Chip(
-                        label: Text('Tag: ${tag.name}'),
+                        label: Text(context.l10n.tagFilter(tag.name)),
                         onDeleted: () {
                           final newTagIds = Set<String>.from(filter.tagIds!)
                             ..remove(id);
@@ -335,7 +335,9 @@ class _ActiveFilterChips extends ConsumerWidget {
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: Chip(
-                        label: Text('Member: ${member.displayName}'),
+                        label: Text(
+                          context.l10n.memberFilter(member.displayName),
+                        ),
                         onDeleted: () {
                           final newMemberIds = Set<String>.from(
                             filter.memberIds!,
@@ -358,7 +360,9 @@ class _ActiveFilterChips extends ConsumerWidget {
               padding: const EdgeInsets.only(right: 8),
               child: Chip(
                 label: Text(
-                  'After: ${filter.startDate!.toString().split(' ')[0]}',
+                  context.l10n.afterFilter(
+                    filter.startDate!.toString().split(' ')[0],
+                  ),
                 ),
                 onDeleted: () {
                   ref.read(transactionFilterProvider(groupId).notifier).state =
@@ -371,7 +375,9 @@ class _ActiveFilterChips extends ConsumerWidget {
               padding: const EdgeInsets.only(right: 8),
               child: Chip(
                 label: Text(
-                  'Before: ${filter.endDate!.toString().split(' ')[0]}',
+                  context.l10n.beforeFilter(
+                    filter.endDate!.toString().split(' ')[0],
+                  ),
                 ),
                 onDeleted: () {
                   ref.read(transactionFilterProvider(groupId).notifier).state =
@@ -415,7 +421,7 @@ class _TransactionListItem extends ConsumerWidget {
           memberMap[transaction.expenseDetail?.payerMemberId] ?? 'Unknown';
       final participantsCount =
           transaction.expenseDetail?.participants.length ?? 0;
-      subTitle = 'Paid by $payerName for $participantsCount members';
+      subTitle = context.l10n.paidByFor(payerName, participantsCount);
     } else {
       final fromName =
           memberMap[transaction.transferDetail?.fromMemberId] ?? 'Unknown';
@@ -440,7 +446,9 @@ class _TransactionListItem extends ConsumerWidget {
         children: [
           Expanded(
             child: Text(
-              transaction.note.isNotEmpty ? transaction.note : 'No note',
+              transaction.note.isNotEmpty
+                  ? transaction.note
+                  : context.l10n.noNote,
               style: const TextStyle(fontWeight: FontWeight.bold),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

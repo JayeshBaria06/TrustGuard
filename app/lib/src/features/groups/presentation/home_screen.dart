@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/providers.dart';
+import '../../../app/app.dart';
 import '../../../ui/components/empty_state.dart';
 import '../../../ui/theme/app_theme.dart';
 import 'groups_providers.dart';
@@ -16,19 +17,21 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('TrustGuard'),
+        title: Text(context.l10n.appTitle),
         actions: [
           IconButton(
             icon: Icon(showArchived ? Icons.archive : Icons.archive_outlined),
             onPressed: () =>
                 ref.read(showArchivedGroupsProvider.notifier).state =
                     !showArchived,
-            tooltip: showArchived ? 'Hide Archived' : 'Show Archived',
+            tooltip: showArchived
+                ? context.l10n.hideArchived
+                : context.l10n.showArchived,
           ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => context.push('/settings'),
-            tooltip: 'Settings',
+            tooltip: context.l10n.settingsTitle,
           ),
         ],
       ),
@@ -41,11 +44,13 @@ class HomeScreen extends ConsumerWidget {
                 icon: showArchived
                     ? Icons.archive_outlined
                     : Icons.group_off_outlined,
-                title: showArchived ? 'No archived groups' : 'No groups yet',
+                title: showArchived
+                    ? context.l10n.noArchivedGroups
+                    : context.l10n.noGroupsYet,
                 message: showArchived
-                    ? 'Archived groups will appear here.'
-                    : 'Create a group to start tracking expenses and settlements with your friends.',
-                actionLabel: showArchived ? null : 'Create Group',
+                    ? context.l10n.noArchivedGroupsMessage
+                    : context.l10n.noGroupsMessage,
+                actionLabel: showArchived ? null : context.l10n.createGroup,
                 onActionPressed: showArchived
                     ? null
                     : () => context.push('/group/create'),
@@ -80,7 +85,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
                     subtitle: Text(
-                      '${item.memberCount} members • ${group.currencyCode}',
+                      '${context.l10n.membersCount(item.memberCount)} • ${group.currencyCode}',
                       style: TextStyle(
                         fontStyle: isArchived ? FontStyle.italic : null,
                       ),
@@ -92,12 +97,12 @@ class HomeScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            const Text(
-                              'Balance',
-                              style: TextStyle(fontSize: 11),
+                            Text(
+                              context.l10n.balance,
+                              style: const TextStyle(fontSize: 11),
                             ),
                             Text(
-                              'Settled',
+                              context.l10n.settled,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: isArchived ? Colors.grey : Colors.green,
@@ -125,37 +130,37 @@ class HomeScreen extends ConsumerWidget {
                             }
                           },
                           itemBuilder: (context) => [
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'edit',
                               child: ListTile(
-                                leading: Icon(Icons.edit_outlined),
-                                title: Text('Edit'),
+                                leading: const Icon(Icons.edit_outlined),
+                                title: Text(context.l10n.edit),
                                 contentPadding: EdgeInsets.zero,
                                 visualDensity: VisualDensity.compact,
                               ),
                             ),
                             if (!isArchived)
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'archive',
                                 child: ListTile(
-                                  leading: Icon(Icons.archive_outlined),
-                                  title: Text('Archive'),
+                                  leading: const Icon(Icons.archive_outlined),
+                                  title: Text(context.l10n.archive),
                                   contentPadding: EdgeInsets.zero,
                                   visualDensity: VisualDensity.compact,
                                 ),
                               )
                             else
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'unarchive',
                                 child: ListTile(
-                                  leading: Icon(Icons.unarchive_outlined),
-                                  title: Text('Unarchive'),
+                                  leading: const Icon(Icons.unarchive_outlined),
+                                  title: Text(context.l10n.unarchive),
                                   contentPadding: EdgeInsets.zero,
                                   visualDensity: VisualDensity.compact,
                                 ),
                               ),
                           ],
-                          tooltip: 'Group options',
+                          tooltip: context.l10n.groupOptions,
                         ),
                       ],
                     ),
@@ -166,7 +171,6 @@ class HomeScreen extends ConsumerWidget {
             },
           );
         },
-
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(
@@ -174,11 +178,11 @@ class HomeScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: AppTheme.space16),
-              Text('Error loading groups: $error'),
+              Text(context.l10n.errorLoadingGroups(error.toString())),
               const SizedBox(height: AppTheme.space16),
               ElevatedButton(
                 onPressed: () => ref.refresh(groupsWithMemberCountProvider),
-                child: const Text('Retry'),
+                child: Text(context.l10n.retry),
               ),
             ],
           ),
@@ -187,7 +191,7 @@ class HomeScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/group/create'),
         icon: const Icon(Icons.add),
-        label: const Text('New Group'),
+        label: Text(context.l10n.newGroup),
       ),
     );
   }
