@@ -24,6 +24,9 @@ abstract class ExpenseDetail with _$ExpenseDetail {
     required SplitType splitType,
     required List<ExpenseParticipant> participants,
     String? splitMetaJson,
+    double? exchangeRate,
+    String? originalCurrencyCode,
+    int? originalAmountMinor,
   }) = _ExpenseDetail;
 
   factory ExpenseDetail.fromJson(Map<String, dynamic> json) =>
