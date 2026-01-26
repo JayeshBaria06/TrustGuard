@@ -186,5 +186,8 @@
     }
   },
   "today": "Today",
-  "yesterday": "Yesterday"
+  "yesterday": "Yesterday",
+  "selectAll": "Select All",
+  "selectNone": "None",
+  "paidBy": "Paid by"
 }

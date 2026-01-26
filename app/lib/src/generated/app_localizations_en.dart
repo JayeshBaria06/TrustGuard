@@ -322,4 +322,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get yesterday => 'Yesterday';
+
+  @override
+  String get selectAll => 'Select All';
+
+  @override
+  String get selectNone => 'None';
+
+  @override
+  String get paidBy => 'Paid by';
 }
