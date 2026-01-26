@@ -663,6 +663,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Undo'**
   String get undo;
+
+  /// No description provided for @actionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Action Required'**
+  String get actionRequired;
+
+  /// No description provided for @incoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming'**
+  String get incoming;
+
+  /// No description provided for @otherSettlements.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Settlements'**
+  String get otherSettlements;
+
+  /// No description provided for @allSettledUp.
+  ///
+  /// In en, this message translates to:
+  /// **'All settled up!'**
+  String get allSettledUp;
+
+  /// No description provided for @markAsPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Paid'**
+  String get markAsPaid;
+
+  /// No description provided for @payNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Now'**
+  String get payNow;
+
+  /// No description provided for @whichOneIsYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Which one is you?'**
+  String get whichOneIsYou;
+
+  /// No description provided for @selectSelfMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a member to see what you owe or are owed.'**
+  String get selectSelfMember;
+
+  /// No description provided for @owesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'owes'**
+  String get owesLabel;
+
+  /// No description provided for @isOwedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'is owed'**
+  String get isOwedLabel;
+
+  /// No description provided for @record.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get record;
+
+  /// No description provided for @settlements.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlements'**
+  String get settlements;
 }
 
 class _AppLocalizationsDelegate

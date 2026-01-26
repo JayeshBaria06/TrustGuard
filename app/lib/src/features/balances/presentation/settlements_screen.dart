@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../app/app.dart';
 import '../../../app/providers.dart';
+import '../../../core/models/member.dart';
+import '../../../core/models/settlement_suggestion.dart';
 import '../../../core/utils/money.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../groups/presentation/groups_providers.dart';
+import '../providers/balance_providers.dart';
 import '../services/balance_service.dart';
 import '../services/settlement_service.dart';
 
@@ -17,10 +21,13 @@ class SettlementsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final balancesAsync = ref.watch(groupBalancesProvider(groupId));
     final groupAsync = ref.watch(groupStreamProvider(groupId));
+    final membersAsync = ref.watch(membersByGroupProvider(groupId));
+    final selfMemberId = ref.watch(groupSelfMemberProvider(groupId));
     final formatMoney = ref.watch(moneyFormatterProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settlement Suggestions')),
+      appBar: AppBar(title: Text(l10n.settlements)),
       body: groupAsync.when(
         data: (group) {
           final currency = group?.currencyCode ?? 'USD';
@@ -30,128 +37,94 @@ class SettlementsScreen extends ConsumerWidget {
                   SettlementService.computeSettlementSuggestions(balances);
 
               if (suggestions.isEmpty) {
-                return const Center(
-                  child: Text('All settled up! No suggestions needed.'),
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.check_circle_outline,
+                        size: 64,
+                        color: Colors.green,
+                      ),
+                      const SizedBox(height: AppTheme.space16),
+                      Text(
+                        l10n.allSettledUp,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                    ],
+                  ),
                 );
               }
 
-              return Column(
+              final actionRequired = suggestions
+                  .where((s) => s.fromMemberId == selfMemberId)
+                  .toList();
+              final incoming = suggestions
+                  .where((s) => s.toMemberId == selfMemberId)
+                  .toList();
+              final other = suggestions
+                  .where(
+                    (s) =>
+                        s.fromMemberId != selfMemberId &&
+                        s.toMemberId != selfMemberId,
+                  )
+                  .toList();
+
+              return ListView(
+                padding: const EdgeInsets.all(AppTheme.space16),
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(AppTheme.space16),
-                    child: Text(
-                      'Suggested transfers to reach zero balances for everyone.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).hintColor,
+                  if (selfMemberId == null)
+                    _buildSelfMemberSelector(
+                      context,
+                      ref,
+                      groupId,
+                      membersAsync,
+                    ),
+                  if (actionRequired.isNotEmpty) ...[
+                    _buildSectionHeader(
+                      context,
+                      l10n.actionRequired,
+                      Colors.red,
+                    ),
+                    ...actionRequired.map(
+                      (s) => _SuggestionCard(
+                        suggestion: s,
+                        groupId: groupId,
+                        currency: currency,
+                        formatMoney: formatMoney,
+                        isOutgoing: true,
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppTheme.space16,
+                    const SizedBox(height: AppTheme.space16),
+                  ],
+                  if (incoming.isNotEmpty) ...[
+                    _buildSectionHeader(context, l10n.incoming, Colors.green),
+                    ...incoming.map(
+                      (s) => _SuggestionCard(
+                        suggestion: s,
+                        groupId: groupId,
+                        currency: currency,
+                        formatMoney: formatMoney,
+                        isIncoming: true,
                       ),
-                      itemCount: suggestions.length,
-                      itemBuilder: (context, index) {
-                        final suggestion = suggestions[index];
-                        return Card(
-                          margin: const EdgeInsets.only(
-                            bottom: AppTheme.space12,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppTheme.space12),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            suggestion.fromMemberName,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          Text(
-                                            'owes',
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.labelSmall,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const Icon(
-                                      Icons.arrow_forward,
-                                      color: Colors.grey,
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            suggestion.toMemberName,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          Text(
-                                            'is owed',
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.labelSmall,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const Divider(height: AppTheme.space24),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      formatMoney(
-                                        suggestion.amountMinor,
-                                        currencyCode: currency,
-                                      ),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge
-                                          ?.copyWith(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        // Navigate to Add Transfer screen with pre-filled values
-                                        context.push(
-                                          '/group/$groupId/transactions/add-transfer'
-                                          '?fromId=${suggestion.fromMemberId}'
-                                          '&toId=${suggestion.toMemberId}'
-                                          '&amount=${MoneyUtils.fromMinorUnits(suggestion.amountMinor)}'
-                                          '&note=Settlement',
-                                        );
-                                      },
-                                      child: const Text('Record'),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                    ),
+                    const SizedBox(height: AppTheme.space16),
+                  ],
+                  if (other.isNotEmpty)
+                    ExpansionTile(
+                      title: Text(l10n.otherSettlements),
+                      initiallyExpanded: selfMemberId == null,
+                      children: other
+                          .map(
+                            (s) => _SuggestionCard(
+                              suggestion: s,
+                              groupId: groupId,
+                              currency: currency,
+                              formatMoney: formatMoney,
                             ),
-                          ),
-                        );
-                      },
+                          )
+                          .toList(),
                     ),
-                  ),
                 ],
               );
             },
@@ -161,6 +134,171 @@ class SettlementsScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error loading group: $e')),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTheme.space8),
+      child: Text(
+        title.toUpperCase(),
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: color,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelfMemberSelector(
+    BuildContext context,
+    WidgetRef ref,
+    String groupId,
+    AsyncValue<List<Member>> membersAsync,
+  ) {
+    final l10n = context.l10n;
+    return Card(
+      margin: const EdgeInsets.only(bottom: AppTheme.space16),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.space12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.whichOneIsYou,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: AppTheme.space4),
+            Text(
+              l10n.selectSelfMember,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: AppTheme.space8),
+            membersAsync.when(
+              data: (members) => Wrap(
+                spacing: AppTheme.space8,
+                children: members.map((member) {
+                  return ActionChip(
+                    label: Text(member.displayName),
+                    onPressed: () {
+                      ref
+                          .read(groupSelfMemberProvider(groupId).notifier)
+                          .setSelfMember(member.id);
+                    },
+                  );
+                }).toList(),
+              ),
+              loading: () => const LinearProgressIndicator(),
+              error: (e, st) => const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SuggestionCard extends StatelessWidget {
+  final SettlementSuggestion suggestion;
+  final String groupId;
+  final String currency;
+  final MoneyFormatter formatMoney;
+  final bool isOutgoing;
+  final bool isIncoming;
+
+  const _SuggestionCard({
+    required this.suggestion,
+    required this.groupId,
+    required this.currency,
+    required this.formatMoney,
+    this.isOutgoing = false,
+    this.isIncoming = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Card(
+      margin: const EdgeInsets.only(bottom: AppTheme.space12),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.space12),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        suggestion.fromMemberName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        l10n.owesLabel,
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.arrow_forward, color: Colors.grey),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        suggestion.toMemberName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        l10n.isOwedLabel,
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: AppTheme.space24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  formatMoney(suggestion.amountMinor, currencyCode: currency),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: isOutgoing
+                        ? Colors.red
+                        : isIncoming
+                        ? Colors.green
+                        : Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    context.push(
+                      '/group/$groupId/transactions/add-transfer'
+                      '?fromId=${suggestion.fromMemberId}'
+                      '&toId=${suggestion.toMemberId}'
+                      '&amount=${MoneyUtils.fromMinorUnits(suggestion.amountMinor)}'
+                      '&note=Settlement',
+                    );
+                  },
+                  child: Text(
+                    isOutgoing
+                        ? l10n.payNow
+                        : isIncoming
+                        ? l10n.markAsPaid
+                        : l10n.record,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

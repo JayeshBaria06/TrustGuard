@@ -350,4 +350,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get undo => 'Undo';
+
+  @override
+  String get actionRequired => 'Action Required';
+
+  @override
+  String get incoming => 'Incoming';
+
+  @override
+  String get otherSettlements => 'Other Settlements';
+
+  @override
+  String get allSettledUp => 'All settled up!';
+
+  @override
+  String get markAsPaid => 'Mark as Paid';
+
+  @override
+  String get payNow => 'Pay Now';
+
+  @override
+  String get whichOneIsYou => 'Which one is you?';
+
+  @override
+  String get selectSelfMember =>
+      'Tap a member to see what you owe or are owed.';
+
+  @override
+  String get owesLabel => 'owes';
+
+  @override
+  String get isOwedLabel => 'is owed';
+
+  @override
+  String get record => 'Record';
+
+  @override
+  String get settlements => 'Settlements';
 }
