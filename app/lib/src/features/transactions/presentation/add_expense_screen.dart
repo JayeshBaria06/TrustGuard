@@ -33,6 +33,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   DateTime _occurredAt = DateTime.now();
   String? _payerMemberId;
   final Set<String> _selectedMemberIds = {};
+  final Map<String, TextEditingController> _customAmountControllers = {};
+  SplitType _splitType = SplitType.equal;
   bool _isLoading = false;
   bool _isInitialized = false;
   DateTime _createdAt = DateTime.now();
@@ -41,6 +43,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   void dispose() {
     _amountController.dispose();
     _noteController.dispose();
+    for (var controller in _customAmountControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -86,10 +91,21 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     try {
       final totalAmountMinor = MoneyUtils.toMinorUnits(amountDouble);
       final participantCount = _selectedMemberIds.length;
-      final splitAmounts = MoneyUtils.splitEqual(
-        totalAmountMinor,
-        participantCount,
-      );
+
+      final List<int> splitAmounts;
+      if (_splitType == SplitType.equal) {
+        splitAmounts = MoneyUtils.splitEqual(
+          totalAmountMinor,
+          participantCount,
+        );
+      } else {
+        // Custom split
+        splitAmounts = _selectedMemberIds.map((id) {
+          final controller = _customAmountControllers[id];
+          if (controller == null) return 0;
+          return MoneyUtils.toMinorUnits(double.tryParse(controller.text) ?? 0);
+        }).toList();
+      }
 
       final participantList = _selectedMemberIds.toList()..sort();
       final participants = <ExpenseParticipant>[];
@@ -125,7 +141,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         expenseDetail: ExpenseDetail(
           payerMemberId: _payerMemberId!,
           totalAmountMinor: totalAmountMinor,
-          splitType: SplitType.equal,
+          splitType: _splitType,
           participants: participants,
         ),
       );
@@ -169,10 +185,18 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
           _occurredAt = tx.occurredAt;
           _createdAt = tx.createdAt;
           _payerMemberId = tx.expenseDetail!.payerMemberId;
+          _splitType = tx.expenseDetail!.splitType;
           _selectedMemberIds.clear();
-          _selectedMemberIds.addAll(
-            tx.expenseDetail!.participants.map((p) => p.memberId),
-          );
+          for (var p in tx.expenseDetail!.participants) {
+            _selectedMemberIds.add(p.memberId);
+            if (_splitType == SplitType.custom) {
+              _customAmountControllers[p.memberId] = TextEditingController(
+                text: MoneyUtils.fromMinorUnits(
+                  p.owedAmountMinor,
+                ).toStringAsFixed(2),
+              );
+            }
+          }
           _isInitialized = true;
           setState(() {});
         }
@@ -301,24 +325,36 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                     context,
                                   ).textTheme.titleMedium,
                                 ),
-                                TextButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      if (_selectedMemberIds.length ==
-                                          members.length) {
-                                        _selectedMemberIds.clear();
-                                      } else {
-                                        _selectedMemberIds.addAll(
-                                          members.map((m) => m.id),
-                                        );
-                                      }
-                                    });
+                                DropdownButton<SplitType>(
+                                  value: _splitType,
+                                  underline: const SizedBox(),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: SplitType.equal,
+                                      child: Text('Split Equally'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: SplitType.custom,
+                                      child: Text('Split Customly'),
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      setState(() {
+                                        _splitType = value;
+                                        if (_splitType == SplitType.custom) {
+                                          // Initialize custom controllers if needed
+                                          for (var id in _selectedMemberIds) {
+                                            _customAmountControllers
+                                                .putIfAbsent(
+                                                  id,
+                                                  () => TextEditingController(),
+                                                );
+                                          }
+                                        }
+                                      });
+                                    }
                                   },
-                                  child: Text(
-                                    _selectedMemberIds.length == members.length
-                                        ? 'Select None'
-                                        : 'Select All',
-                                  ),
                                 ),
                               ],
                             ),
@@ -332,24 +368,66 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                               ),
                               child: Column(
                                 children: members.map((m) {
-                                  return CheckboxListTile(
-                                    title: Text(m.displayName),
-                                    value: _selectedMemberIds.contains(m.id),
-                                    onChanged: (checked) {
-                                      setState(() {
-                                        if (checked == true) {
-                                          _selectedMemberIds.add(m.id);
-                                        } else {
-                                          _selectedMemberIds.remove(m.id);
-                                        }
-                                      });
-                                    },
-                                    controlAffinity:
-                                        ListTileControlAffinity.leading,
+                                  final isSelected = _selectedMemberIds
+                                      .contains(m.id);
+                                  return Column(
+                                    children: [
+                                      CheckboxListTile(
+                                        title: Text(m.displayName),
+                                        value: isSelected,
+                                        onChanged: (checked) {
+                                          setState(() {
+                                            if (checked == true) {
+                                              _selectedMemberIds.add(m.id);
+                                              if (_splitType ==
+                                                  SplitType.custom) {
+                                                _customAmountControllers
+                                                    .putIfAbsent(
+                                                      m.id,
+                                                      () =>
+                                                          TextEditingController(),
+                                                    );
+                                              }
+                                            } else {
+                                              _selectedMemberIds.remove(m.id);
+                                            }
+                                          });
+                                        },
+                                        controlAffinity:
+                                            ListTileControlAffinity.leading,
+                                      ),
+                                      if (isSelected &&
+                                          _splitType == SplitType.custom)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 64.0,
+                                            right: 16.0,
+                                            bottom: 8.0,
+                                          ),
+                                          child: TextFormField(
+                                            controller:
+                                                _customAmountControllers[m.id],
+                                            decoration: InputDecoration(
+                                              labelText: 'Amount',
+                                              prefixText: '$currency ',
+                                              isDense: true,
+                                            ),
+                                            keyboardType:
+                                                const TextInputType.numberWithOptions(
+                                                  decimal: true,
+                                                ),
+                                            onChanged: (_) => setState(() {}),
+                                          ),
+                                        ),
+                                    ],
                                   );
                                 }).toList(),
                               ),
                             ),
+                            if (_splitType == SplitType.custom) ...[
+                              const SizedBox(height: AppTheme.space8),
+                              _buildCustomSplitStatus(currency),
+                            ],
                             const SizedBox(height: AppTheme.space32),
                             ElevatedButton(
                               onPressed: _isLoading ? null : _save,
@@ -373,6 +451,51 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, s) => Center(child: Text('Error loading members: $e')),
+      ),
+    );
+  }
+
+  Widget _buildCustomSplitStatus(String currency) {
+    final totalAmountMinor = MoneyUtils.toMinorUnits(
+      double.tryParse(_amountController.text) ?? 0,
+    );
+    final customTotalMinor = _selectedMemberIds.fold<int>(0, (sum, id) {
+      final text = _customAmountControllers[id]?.text ?? '0';
+      return sum + MoneyUtils.toMinorUnits(double.tryParse(text) ?? 0);
+    });
+
+    final difference = totalAmountMinor - customTotalMinor;
+    final isCorrect = difference == 0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isCorrect
+            ? Colors.green.withAlpha(25)
+            : Colors.red.withAlpha(25),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: isCorrect ? Colors.green : Colors.red),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            isCorrect ? 'Total matches!' : 'Total mismatch',
+            style: TextStyle(
+              color: isCorrect ? Colors.green : Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            isCorrect
+                ? MoneyUtils.format(totalAmountMinor, currencyCode: currency)
+                : '${difference > 0 ? 'Remaining' : 'Over'}: ${MoneyUtils.format(difference.abs(), currencyCode: currency)}',
+            style: TextStyle(
+              color: isCorrect ? Colors.green : Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }

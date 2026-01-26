@@ -175,4 +175,59 @@ void main() {
     await db.close();
     await tester.pump(Duration.zero);
   });
+
+  testWidgets('AddExpenseScreen adds custom split successfully', (
+    WidgetTester tester,
+  ) async {
+    final groupId = const Uuid().v4();
+    await setupData(groupId);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: MaterialApp(home: AddExpenseScreen(groupId: groupId)),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Fill in amount
+    await tester.enterText(find.byType(TextFormField).first, '100.00');
+
+    // Switch to custom split
+    await tester.tap(find.text('Split Equally'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Split Customly').last);
+    await tester.pumpAndSettle();
+
+    // Fill in custom amounts: m1 (Alice) = 60, m2 (Bob) = 40
+    await tester.enterText(find.byType(TextFormField).at(2), '60.00');
+    await tester.enterText(find.byType(TextFormField).at(3), '40.00');
+    await tester.pumpAndSettle();
+
+    // Tap Save
+    await tester.tap(find.byIcon(Icons.check));
+    await tester.pumpAndSettle();
+
+    // Verify transaction created with custom split
+    final transactions = await db.select(db.transactions).get();
+    expect(transactions.length, 1);
+
+    final details = await db.select(db.expenseDetails).get();
+    expect(details.first.splitType, SplitType.custom);
+
+    final participants = await db.select(db.expenseParticipants).get();
+    expect(participants.length, 2);
+    expect(
+      participants.firstWhere((p) => p.memberId == 'm1').owedAmountMinor,
+      6000,
+    );
+    expect(
+      participants.firstWhere((p) => p.memberId == 'm2').owedAmountMinor,
+      4000,
+    );
+
+    await db.close();
+    await tester.pump(Duration.zero);
+  });
 }
