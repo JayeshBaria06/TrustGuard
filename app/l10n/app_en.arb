@@ -205,6 +205,24 @@
   "allSettledUp": "All settled up!",
   "markAsPaid": "Mark as Paid",
   "payNow": "Pay Now",
+  "totalMatches": "Total matches!",
+  "totalMismatch": "Total mismatch",
+  "remaining": "Remaining",
+  "over": "Over",
+  "splitPortion": "{name}: {amount} ({percent}%)",
+  "@splitPortion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "whichOneIsYou": "Which one is you?",
   "selectSelfMember": "Tap a member to see what you owe or are owed.",
   "owesLabel": "owes",

@@ -6,12 +6,14 @@ import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
 import '../../../app/app.dart';
 import '../../../core/models/expense.dart';
+import '../../../core/models/member.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
 import '../../../ui/components/member_avatar_selector.dart';
 import '../../../ui/theme/app_theme.dart';
+import 'widgets/split_preview_bar.dart';
 import '../../groups/presentation/groups_providers.dart';
 import 'transactions_providers.dart';
 
@@ -575,9 +577,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                 ),
                               ),
                             ],
-                            if (_splitType == SplitType.custom) ...[
-                              const SizedBox(height: AppTheme.space8),
-                              _buildCustomSplitStatus(currency),
+                            if (_selectedMemberIds.isNotEmpty) ...[
+                              const SizedBox(height: AppTheme.space16),
+                              _buildSplitPreview(currency, members),
                             ],
                             const SizedBox(height: AppTheme.space32),
                             ElevatedButton(
@@ -733,49 +735,37 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     );
   }
 
-  Widget _buildCustomSplitStatus(String currency) {
-    final formatMoney = ref.watch(moneyFormatterProvider);
+  Widget _buildSplitPreview(String currency, List<Member> members) {
     final totalAmountMinor = MoneyUtils.toMinorUnits(
       double.tryParse(_amountController.text) ?? 0,
     );
-    final customTotalMinor = _selectedMemberIds.fold<int>(0, (sum, id) {
-      final text = _customAmountControllers[id]?.text ?? '0';
-      return sum + MoneyUtils.toMinorUnits(double.tryParse(text) ?? 0);
-    });
 
-    final difference = totalAmountMinor - customTotalMinor;
-    final isCorrect = difference == 0;
+    final Map<String, int> splits = {};
+    if (_splitType == SplitType.equal) {
+      if (_selectedMemberIds.isNotEmpty) {
+        final equalSplits = MoneyUtils.splitEqual(
+          totalAmountMinor,
+          _selectedMemberIds.length,
+        );
+        final sortedIds = _selectedMemberIds.toList()..sort();
+        for (int i = 0; i < sortedIds.length; i++) {
+          splits[sortedIds[i]] = equalSplits[i];
+        }
+      }
+    } else {
+      for (var id in _selectedMemberIds) {
+        final text = _customAmountControllers[id]?.text ?? '0';
+        splits[id] = MoneyUtils.toMinorUnits(double.tryParse(text) ?? 0);
+      }
+    }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: isCorrect
-            ? Colors.green.withAlpha(25)
-            : Colors.red.withAlpha(25),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isCorrect ? Colors.green : Colors.red),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            isCorrect ? 'Total matches!' : 'Total mismatch',
-            style: TextStyle(
-              color: isCorrect ? Colors.green : Colors.red,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            isCorrect
-                ? formatMoney(totalAmountMinor, currencyCode: currency)
-                : '${difference > 0 ? 'Remaining' : 'Over'}: ${formatMoney(difference.abs(), currencyCode: currency)}',
-            style: TextStyle(
-              color: isCorrect ? Colors.green : Colors.red,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
+    final memberNames = {for (var m in members) m.id: m.displayName};
+
+    return SplitPreviewBar(
+      totalAmount: totalAmountMinor,
+      splits: splits,
+      memberNames: memberNames,
+      currencyCode: currency,
     );
   }
 }

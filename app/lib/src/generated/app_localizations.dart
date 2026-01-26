@@ -718,6 +718,36 @@ abstract class AppLocalizations {
   /// **'Pay Now'**
   String get payNow;
 
+  /// No description provided for @totalMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Total matches!'**
+  String get totalMatches;
+
+  /// No description provided for @totalMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Total mismatch'**
+  String get totalMismatch;
+
+  /// No description provided for @remaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get remaining;
+
+  /// No description provided for @over.
+  ///
+  /// In en, this message translates to:
+  /// **'Over'**
+  String get over;
+
+  /// No description provided for @splitPortion.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {amount} ({percent}%)'**
+  String splitPortion(String name, String amount, String percent);
+
   /// No description provided for @whichOneIsYou.
   ///
   /// In en, this message translates to:

@@ -379,6 +379,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payNow => 'Pay Now';
 
   @override
+  String get totalMatches => 'Total matches!';
+
+  @override
+  String get totalMismatch => 'Total mismatch';
+
+  @override
+  String get remaining => 'Remaining';
+
+  @override
+  String get over => 'Over';
+
+  @override
+  String splitPortion(String name, String amount, String percent) {
+    return '$name: $amount ($percent%)';
+  }
+
+  @override
   String get whichOneIsYou => 'Which one is you?';
 
   @override
