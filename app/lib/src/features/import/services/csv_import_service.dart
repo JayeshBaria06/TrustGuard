@@ -5,8 +5,323 @@ import '../../../core/models/expense.dart';
 import '../../../core/utils/money.dart';
 import '../models/import_result.dart';
 
+enum CsvFormat { splitwise, tricount, unknown }
+
 class CsvImportService {
   final Uuid _uuid = const Uuid();
+
+  /// Automatically detects the CSV format based on headers.
+  CsvFormat detectCsvFormat(String csvContent) {
+    final List<List<dynamic>> rows = const CsvToListConverter().convert(
+      csvContent,
+    );
+    if (rows.isEmpty) return CsvFormat.unknown;
+
+    final header = rows.first
+        .map((e) => e.toString().trim().toLowerCase())
+        .toList();
+
+    // Splitwise markers
+    if (_findColumn(header, ['Cost']) != -1 &&
+        _findColumn(header, ['Category']) != -1) {
+      return CsvFormat.splitwise;
+    }
+
+    // Tricount markers
+    if (_findColumn(header, ['For whom']) != -1 ||
+        (_findColumn(header, ['Paid by']) != -1 &&
+            _findColumn(header, ['Amount']) != -1)) {
+      return CsvFormat.tricount;
+    }
+
+    return CsvFormat.unknown;
+  }
+
+  /// Unified import method that auto-detects format.
+  Future<ImportResult> importCsv(
+    String csvContent,
+    String targetGroupId, {
+    Map<String, String>? memberMapping,
+  }) async {
+    final format = detectCsvFormat(csvContent);
+    switch (format) {
+      case CsvFormat.splitwise:
+        return importSplitwiseCsv(
+          csvContent,
+          targetGroupId,
+          memberMapping: memberMapping,
+        );
+      case CsvFormat.tricount:
+        return importTricountCsv(
+          csvContent,
+          targetGroupId,
+          memberMapping: memberMapping,
+        );
+      case CsvFormat.unknown:
+        return const ImportResult(
+          successCount: 0,
+          failedCount: 0,
+          errors: [
+            ImportError(
+              rowNumber: 1,
+              message:
+                  'Could not detect CSV format. Supported formats: Splitwise, Tricount.',
+            ),
+          ],
+          transactions: [],
+        );
+    }
+  }
+
+  /// Extracts potential member names from a CSV file.
+  Future<List<String>> getMemberNamesFromCsv(String csvContent) async {
+    final format = detectCsvFormat(csvContent);
+    switch (format) {
+      case CsvFormat.splitwise:
+        return getMemberNamesFromSplitwiseCsv(csvContent);
+      case CsvFormat.tricount:
+        return getMemberNamesFromTricountCsv(csvContent);
+      case CsvFormat.unknown:
+        return [];
+    }
+  }
+
+  /// Extracts potential member names from a Tricount CSV.
+  Future<List<String>> getMemberNamesFromTricountCsv(String csvContent) async {
+    final List<List<dynamic>> rows = const CsvToListConverter().convert(
+      csvContent,
+    );
+    if (rows.isEmpty) return [];
+
+    final header = rows.first.map((e) => e.toString().trim()).toList();
+    final payerIdx = _findColumn(header, ['Paid by', 'Who Paid', 'Payer']);
+    final forWhomIdx = _findColumn(header, ['For whom', 'Beneficiaries']);
+
+    final memberNames = <String>{};
+    final dataRows = rows.skip(1);
+
+    for (final row in dataRows) {
+      if (row.isEmpty) continue;
+
+      // Add payer
+      if (payerIdx != -1 && row.length > payerIdx) {
+        final name = row[payerIdx].toString().trim();
+        if (name.isNotEmpty) memberNames.add(name);
+      }
+
+      // Add beneficiaries from "For whom"
+      if (forWhomIdx != -1 && row.length > forWhomIdx) {
+        final whom = row[forWhomIdx].toString().trim();
+        if (whom.isNotEmpty && whom.toLowerCase() != 'everybody') {
+          // Tricount often uses comma or semicolon separator
+          final names = whom.split(RegExp(r'[,;]'));
+          for (final name in names) {
+            final trimmed = name.trim();
+            if (trimmed.isNotEmpty) memberNames.add(trimmed);
+          }
+        }
+      }
+    }
+
+    return memberNames.toList()..sort();
+  }
+
+  /// Imports transactions from a Tricount CSV.
+  Future<ImportResult> importTricountCsv(
+    String csvContent,
+    String targetGroupId, {
+    Map<String, String>? memberMapping,
+  }) async {
+    final List<List<dynamic>> rows = const CsvToListConverter().convert(
+      csvContent,
+    );
+    if (rows.isEmpty) {
+      return const ImportResult(
+        successCount: 0,
+        failedCount: 0,
+        errors: [],
+        transactions: [],
+      );
+    }
+
+    final header = rows.first.map((e) => e.toString().trim()).toList();
+    final dataRows = rows.skip(1).toList();
+
+    // Identify standard columns
+    final descIdx = _findColumn(header, ['Title', 'Description']);
+    final amountIdx = _findColumn(header, ['Amount', 'Cost']);
+    final payerIdx = _findColumn(header, ['Paid by', 'Who Paid', 'Payer']);
+    final dateIdx = _findColumn(header, ['Date']);
+    final forWhomIdx = _findColumn(header, ['For whom', 'Beneficiaries']);
+
+    // Required columns
+    if (descIdx == -1 || amountIdx == -1 || payerIdx == -1) {
+      return ImportResult(
+        successCount: 0,
+        failedCount: dataRows.length,
+        errors: [
+          const ImportError(
+            rowNumber: 1,
+            message: 'Missing required columns (Title, Amount, or Paid by)',
+          ),
+        ],
+        transactions: [],
+      );
+    }
+
+    final List<Transaction> transactions = [];
+    final List<ImportError> errors = [];
+    int successCount = 0;
+
+    for (int i = 0; i < dataRows.length; i++) {
+      final row = dataRows[i];
+      final rowNumber = i + 2;
+
+      try {
+        if (row.isEmpty || row.length <= _max({descIdx, amountIdx, payerIdx})) {
+          continue;
+        }
+
+        final String rawAmount = row[amountIdx].toString().replaceAll(
+          RegExp(r'[^\d.-]'),
+          '',
+        );
+        final double? amountValue = double.tryParse(rawAmount);
+        if (amountValue == null || amountValue == 0) continue;
+
+        final DateTime? occurredAt = dateIdx != -1
+            ? _parseDate(row[dateIdx].toString())
+            : DateTime.now();
+
+        if (occurredAt == null) {
+          errors.add(
+            ImportError(
+              rowNumber: rowNumber,
+              message: 'Invalid date format: ${row[dateIdx]}',
+            ),
+          );
+          continue;
+        }
+
+        final String description = row[descIdx].toString();
+        final int totalAmountMinor = MoneyUtils.toMinorUnits(amountValue);
+
+        // Find payer
+        final String payerName = row[payerIdx].toString().trim();
+        final String? payerId = memberMapping?[payerName];
+
+        if (payerId == null && memberMapping != null && payerName.isNotEmpty) {
+          errors.add(
+            ImportError(
+              rowNumber: rowNumber,
+              message: 'Payer not mapped: $payerName',
+            ),
+          );
+          continue;
+        }
+
+        // Handle participants (For whom)
+        final participants = <ExpenseParticipant>[];
+        if (forWhomIdx != -1 && row.length > forWhomIdx) {
+          final forWhom = row[forWhomIdx].toString().trim();
+          if (forWhom.toLowerCase() == 'everybody') {
+            // Split among all mapped members
+            if (memberMapping != null) {
+              final share = totalAmountMinor ~/ memberMapping.length;
+              var remainder = totalAmountMinor % memberMapping.length;
+
+              for (final entry in memberMapping.entries) {
+                participants.add(
+                  ExpenseParticipant(
+                    memberId: entry.value,
+                    owedAmountMinor: share + (remainder > 0 ? 1 : 0),
+                  ),
+                );
+                if (remainder > 0) remainder--;
+              }
+            }
+          } else if (forWhom.isNotEmpty) {
+            final names = forWhom
+                .split(RegExp(r'[,;]'))
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+            final mappedIds = <String>[];
+            for (final name in names) {
+              final id = memberMapping?[name];
+              if (id != null) mappedIds.add(id);
+            }
+
+            if (mappedIds.isNotEmpty) {
+              final share = totalAmountMinor ~/ mappedIds.length;
+              var remainder = totalAmountMinor % mappedIds.length;
+
+              for (final id in mappedIds) {
+                participants.add(
+                  ExpenseParticipant(
+                    memberId: id,
+                    owedAmountMinor: share + (remainder > 0 ? 1 : 0),
+                  ),
+                );
+                if (remainder > 0) remainder--;
+              }
+            }
+          }
+        }
+
+        // Fallback: split equally among all mapped members if no participants found
+        if (participants.isEmpty && memberMapping != null) {
+          final share = totalAmountMinor ~/ memberMapping.length;
+          var remainder = totalAmountMinor % memberMapping.length;
+
+          for (final entry in memberMapping.entries) {
+            participants.add(
+              ExpenseParticipant(
+                memberId: entry.value,
+                owedAmountMinor: share + (remainder > 0 ? 1 : 0),
+              ),
+            );
+            if (remainder > 0) remainder--;
+          }
+        }
+
+        final now = DateTime.now();
+        transactions.add(
+          Transaction(
+            id: _uuid.v4(),
+            groupId: targetGroupId,
+            type: TransactionType.expense,
+            occurredAt: occurredAt,
+            note: description,
+            createdAt: now,
+            updatedAt: now,
+            expenseDetail: ExpenseDetail(
+              payerMemberId: payerId ?? 'unknown-payer',
+              totalAmountMinor: totalAmountMinor,
+              splitType:
+                  SplitType.equal, // Usually equal in Tricount unless specified
+              participants: participants,
+            ),
+          ),
+        );
+        successCount++;
+      } catch (e) {
+        errors.add(
+          ImportError(
+            rowNumber: rowNumber,
+            message: 'Unexpected error: ${e.toString()}',
+          ),
+        );
+      }
+    }
+
+    return ImportResult(
+      successCount: successCount,
+      failedCount: errors.length,
+      errors: errors,
+      transactions: transactions,
+    );
+  }
 
   /// Extracts potential member names from a Splitwise CSV.
   Future<List<String>> getMemberNamesFromSplitwiseCsv(String csvContent) async {
