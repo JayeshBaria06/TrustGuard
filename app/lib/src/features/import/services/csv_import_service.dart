@@ -10,11 +10,15 @@ enum CsvFormat { splitwise, tricount, unknown }
 class CsvImportService {
   final Uuid _uuid = const Uuid();
 
+  List<List<dynamic>> _parseCsv(String content) {
+    return CsvToListConverter(
+      eol: content.contains('\r\n') ? '\r\n' : '\n',
+    ).convert(content);
+  }
+
   /// Automatically detects the CSV format based on headers.
   CsvFormat detectCsvFormat(String csvContent) {
-    final List<List<dynamic>> rows = const CsvToListConverter().convert(
-      csvContent,
-    );
+    final List<List<dynamic>> rows = _parseCsv(csvContent);
     if (rows.isEmpty) return CsvFormat.unknown;
 
     final header = rows.first
@@ -88,9 +92,7 @@ class CsvImportService {
 
   /// Extracts potential member names from a Tricount CSV.
   Future<List<String>> getMemberNamesFromTricountCsv(String csvContent) async {
-    final List<List<dynamic>> rows = const CsvToListConverter().convert(
-      csvContent,
-    );
+    final List<List<dynamic>> rows = _parseCsv(csvContent);
     if (rows.isEmpty) return [];
 
     final header = rows.first.map((e) => e.toString().trim()).toList();
@@ -132,9 +134,7 @@ class CsvImportService {
     String targetGroupId, {
     Map<String, String>? memberMapping,
   }) async {
-    final List<List<dynamic>> rows = const CsvToListConverter().convert(
-      csvContent,
-    );
+    final List<List<dynamic>> rows = _parseCsv(csvContent);
     if (rows.isEmpty) {
       return const ImportResult(
         successCount: 0,
@@ -325,9 +325,7 @@ class CsvImportService {
 
   /// Extracts potential member names from a Splitwise CSV.
   Future<List<String>> getMemberNamesFromSplitwiseCsv(String csvContent) async {
-    final List<List<dynamic>> rows = const CsvToListConverter().convert(
-      csvContent,
-    );
+    final List<List<dynamic>> rows = _parseCsv(csvContent);
     if (rows.isEmpty) return [];
 
     final header = rows.first.map((e) => e.toString().trim()).toList();
@@ -369,9 +367,7 @@ class CsvImportService {
     String targetGroupId, {
     Map<String, String>? memberMapping,
   }) async {
-    final List<List<dynamic>> rows = const CsvToListConverter().convert(
-      csvContent,
-    );
+    final List<List<dynamic>> rows = _parseCsv(csvContent);
     if (rows.isEmpty) {
       return const ImportResult(
         successCount: 0,
