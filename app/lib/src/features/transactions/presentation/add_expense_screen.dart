@@ -9,6 +9,7 @@ import '../../../core/models/expense.dart';
 import '../../../core/models/member.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
 import '../../../ui/components/member_avatar_selector.dart';
@@ -198,6 +199,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       } else {
         await repository.updateTransaction(transaction);
       }
+
+      HapticsService.success();
 
       if (mounted) {
         context.pop();
@@ -716,6 +719,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                   label: Text(tag.name),
                   selected: isSelected,
                   onSelected: (selected) {
+                    HapticsService.selection();
                     setState(() {
                       if (selected) {
                         _selectedTagIds.add(tag.id);

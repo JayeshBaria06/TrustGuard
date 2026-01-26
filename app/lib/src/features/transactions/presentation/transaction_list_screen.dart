@@ -9,6 +9,7 @@ import '../../../core/models/member.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/models/transaction_filter.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../ui/components/empty_state.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
@@ -475,6 +476,7 @@ class _TransactionListItem extends ConsumerWidget {
         children: [
           SlidableAction(
             onPressed: (context) {
+              HapticsService.lightTap();
               final route = isExpense
                   ? '/group/${transaction.groupId}/transactions/add-expense?txId=${transaction.id}'
                   : '/group/${transaction.groupId}/transactions/add-transfer?txId=${transaction.id}';
@@ -491,7 +493,10 @@ class _TransactionListItem extends ConsumerWidget {
         motion: const DrawerMotion(),
         children: [
           SlidableAction(
-            onPressed: (context) => _confirmDelete(context, ref),
+            onPressed: (context) {
+              HapticsService.lightTap();
+              _confirmDelete(context, ref);
+            },
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
             icon: Icons.delete,
@@ -584,6 +589,7 @@ class _TransactionListItem extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    HapticsService.warning();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/utils/haptics.dart';
 import '../../app/app.dart';
 import '../../core/models/member.dart';
 import '../theme/app_theme.dart';
@@ -27,6 +28,7 @@ class MemberAvatarSelector extends StatelessWidget {
   }
 
   void _handleTap(String memberId) {
+    HapticsService.selection();
     if (allowMultiple) {
       final newSelection = Set<String>.from(selectedIds);
       if (newSelection.contains(memberId)) {

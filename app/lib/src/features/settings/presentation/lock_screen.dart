@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/utils/haptics.dart';
 import '../providers/lock_providers.dart';
 
 class LockScreen extends ConsumerStatefulWidget {
@@ -43,6 +44,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
   void _onDigitPressed(int digit) {
     if (_enteredPin.length < _maxPinLength && !_isVerifying) {
+      HapticsService.lightTap();
       setState(() {
         _enteredPin += digit.toString();
       });
@@ -82,6 +84,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
     if (mounted) {
       if (!success) {
+        HapticsService.warning();
         final newLockState = ref.read(appLockStateProvider);
         setState(() {
           _enteredPin = '';
@@ -102,6 +105,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
           );
         }
       } else {
+        HapticsService.success();
         // Success handled by router/state change
       }
     }

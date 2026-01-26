@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../app/providers.dart';
 import '../../../ui/theme/app_theme.dart';
 
@@ -52,6 +53,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Future<void> _completeOnboarding() async {
+    HapticsService.success();
     await ref.read(onboardingStateProvider.notifier).completeOnboarding();
     if (mounted) {
       context.go('/');
@@ -78,6 +80,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 controller: _pageController,
                 itemCount: _slides.length,
                 onPageChanged: (index) {
+                  HapticsService.selection();
                   setState(() {
                     _currentPage = index;
                   });
