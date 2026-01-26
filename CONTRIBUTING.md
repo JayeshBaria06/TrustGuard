@@ -36,6 +36,19 @@ Thank you for your interest in contributing to TrustGuard! We welcome contributi
 - Accessibility standards (Semantics, contrast) are maintained.
 - Documentation is updated if necessary.
 
+## Adding Translations
+
+TrustGuard uses the standard Flutter localization (l10n) system based on ARB files. While the app is currently English-only, the infrastructure is ready for more languages.
+
+To add a new language:
+1. Navigate to the `app/l10n/` directory.
+2. Create a new ARB file named `app_{locale}.arb` (e.g., `app_es.arb` for Spanish).
+3. Copy the contents of `app_en.arb` and translate the values.
+4. Run `flutter gen-l10n` in the `app/` directory to generate the localized classes.
+5. Verify the translations by changing your device or emulator language.
+
+Keys with parameters (like `{count}` or `{payer}`) must preserve those parameters in the translation. Plurals are handled using the ICU format.
+
 ## Security
 
 Please report security vulnerabilities following the instructions in `SECURITY.md`.

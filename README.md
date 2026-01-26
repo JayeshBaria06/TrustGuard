@@ -52,6 +52,10 @@ TrustGuard is an offline-first group expense and settlement ledger Flutter app. 
 - [Contribution Guidelines](CONTRIBUTING.md)
 - [Security Policy](SECURITY.md)
 
+## Localization
+
+TrustGuard is ready for internationalization! If you would like to see the app in your language, please check the [Adding Translations](CONTRIBUTING.md#adding-translations) section in our contributing guide.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
