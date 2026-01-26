@@ -11,6 +11,18 @@ abstract class TransactionRepository {
     bool includeDeleted = false,
     TransactionFilter? filter,
   });
+  Future<List<model.Transaction>> getTransactionsByGroupPaginated(
+    String groupId, {
+    int limit = 20,
+    int offset = 0,
+    bool includeDeleted = false,
+    TransactionFilter? filter,
+  });
+  Future<int> getTransactionCountByGroup(
+    String groupId, {
+    bool includeDeleted = false,
+    TransactionFilter? filter,
+  });
   Stream<List<model.Transaction>> watchTransactionsByGroup(
     String groupId, {
     bool includeDeleted = false,
@@ -72,6 +84,69 @@ class DriftTransactionRepository implements TransactionRepository {
 
     final rows = await query.get();
     return _mapRowsToTransactions(rows);
+  }
+
+  @override
+  Future<List<model.Transaction>> getTransactionsByGroupPaginated(
+    String groupId, {
+    int limit = 20,
+    int offset = 0,
+    bool includeDeleted = false,
+    TransactionFilter? filter,
+  }) async {
+    final query = _db.select(_db.transactions).join([
+      leftOuterJoin(
+        _db.expenseDetails,
+        _db.expenseDetails.txId.equalsExp(_db.transactions.id),
+      ),
+      leftOuterJoin(
+        _db.transferDetails,
+        _db.transferDetails.txId.equalsExp(_db.transactions.id),
+      ),
+    ])..where(_db.transactions.groupId.equals(groupId));
+
+    if (!includeDeleted) {
+      query.where(_db.transactions.deletedAt.isNull());
+    }
+
+    _applyFilter(query, filter);
+
+    query.orderBy([OrderingTerm.desc(_db.transactions.occurredAt)]);
+    query.limit(limit, offset: offset);
+
+    final rows = await query.get();
+    return _mapRowsToTransactions(rows);
+  }
+
+  @override
+  Future<int> getTransactionCountByGroup(
+    String groupId, {
+    bool includeDeleted = false,
+    TransactionFilter? filter,
+  }) async {
+    final countExp = _db.transactions.id.count();
+    final query =
+        _db.selectOnly(_db.transactions).join([
+            leftOuterJoin(
+              _db.expenseDetails,
+              _db.expenseDetails.txId.equalsExp(_db.transactions.id),
+            ),
+            leftOuterJoin(
+              _db.transferDetails,
+              _db.transferDetails.txId.equalsExp(_db.transactions.id),
+            ),
+          ])
+          ..addColumns([countExp])
+          ..where(_db.transactions.groupId.equals(groupId));
+
+    if (!includeDeleted) {
+      query.where(_db.transactions.deletedAt.isNull());
+    }
+
+    _applyFilter(query, filter);
+
+    final row = await query.getSingle();
+    return row.read(countExp) ?? 0;
   }
 
   @override
