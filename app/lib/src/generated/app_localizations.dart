@@ -783,6 +783,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settlements'**
   String get settlements;
+
+  /// No description provided for @analyticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get analyticsTitle;
+
+  /// No description provided for @spendingByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by Category'**
+  String get spendingByCategory;
+
+  /// No description provided for @spendingByMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Who Spent Most'**
+  String get spendingByMember;
+
+  /// No description provided for @monthlyTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Trend'**
+  String get monthlyTrend;
+
+  /// No description provided for @period3Months.
+  ///
+  /// In en, this message translates to:
+  /// **'3 Months'**
+  String get period3Months;
+
+  /// No description provided for @period6Months.
+  ///
+  /// In en, this message translates to:
+  /// **'6 Months'**
+  String get period6Months;
+
+  /// No description provided for @period12Months.
+  ///
+  /// In en, this message translates to:
+  /// **'12 Months'**
+  String get period12Months;
 }
 
 class _AppLocalizationsDelegate

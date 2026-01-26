@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../features/analytics/presentation/analytics_screen.dart';
 import '../features/export_backup/presentation/export_screen.dart';
 import '../features/export_backup/presentation/backup_screen.dart';
 import '../features/balances/presentation/balances_screen.dart';
@@ -112,6 +113,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return TagsScreen(groupId: id);
+                },
+              ),
+              GoRoute(
+                path: 'analytics',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return AnalyticsScreen(groupId: id);
                 },
               ),
               GoRoute(

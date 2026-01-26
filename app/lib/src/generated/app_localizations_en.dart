@@ -413,4 +413,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settlements => 'Settlements';
+
+  @override
+  String get analyticsTitle => 'Analytics';
+
+  @override
+  String get spendingByCategory => 'Spending by Category';
+
+  @override
+  String get spendingByMember => 'Who Spent Most';
+
+  @override
+  String get monthlyTrend => 'Monthly Trend';
+
+  @override
+  String get period3Months => '3 Months';
+
+  @override
+  String get period6Months => '6 Months';
+
+  @override
+  String get period12Months => '12 Months';
 }

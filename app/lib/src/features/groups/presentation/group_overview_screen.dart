@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../generated/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../core/models/reminder_settings.dart';
 import '../../../ui/theme/app_theme.dart';
@@ -203,6 +204,8 @@ class GroupOverviewScreen extends ConsumerWidget {
   }
 
   Widget _buildQuickActions(BuildContext context, dynamic group) {
+    final l10n = AppLocalizations.of(context)!;
+
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -214,7 +217,7 @@ class GroupOverviewScreen extends ConsumerWidget {
         _buildActionCard(
           context,
           icon: Icons.add_shopping_cart,
-          label: 'Add Expense',
+          label: l10n.addExpense,
           onTap: () =>
               context.push('/group/${group.id}/transactions/add-expense'),
           color: Colors.orange,
@@ -222,22 +225,29 @@ class GroupOverviewScreen extends ConsumerWidget {
         _buildActionCard(
           context,
           icon: Icons.sync_alt,
-          label: 'Add Transfer',
+          label: l10n.addTransfer,
           onTap: () =>
               context.push('/group/${group.id}/transactions/add-transfer'),
           color: Colors.blue,
         ),
         _buildActionCard(
           context,
+          icon: Icons.analytics_outlined,
+          label: l10n.analyticsTitle,
+          onTap: () => context.push('/group/${group.id}/analytics'),
+          color: Colors.indigo,
+        ),
+        _buildActionCard(
+          context,
           icon: Icons.list_alt,
-          label: 'Transactions',
+          label: l10n.transactionsTitle,
           onTap: () => context.push('/group/${group.id}/transactions'),
           color: Colors.purple,
         ),
         _buildActionCard(
           context,
           icon: Icons.account_balance_wallet_outlined,
-          label: 'Balances',
+          label: l10n.balance,
           onTap: () => context.push('/group/${group.id}/balances'),
           color: Colors.teal,
         ),
@@ -247,13 +257,6 @@ class GroupOverviewScreen extends ConsumerWidget {
           label: 'Tags',
           onTap: () => context.push('/group/${group.id}/tags'),
           color: Colors.pink,
-        ),
-        _buildActionCard(
-          context,
-          icon: Icons.import_export,
-          label: 'Export Data',
-          onTap: () => context.push('/group/${group.id}/export'),
-          color: Colors.brown,
         ),
       ],
     );

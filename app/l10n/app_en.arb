@@ -228,5 +228,12 @@
   "owesLabel": "owes",
   "isOwedLabel": "is owed",
   "record": "Record",
-  "settlements": "Settlements"
+  "settlements": "Settlements",
+  "analyticsTitle": "Analytics",
+  "spendingByCategory": "Spending by Category",
+  "spendingByMember": "Who Spent Most",
+  "monthlyTrend": "Monthly Trend",
+  "period3Months": "3 Months",
+  "period6Months": "6 Months",
+  "period12Months": "12 Months"
 }
