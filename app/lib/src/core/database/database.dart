@@ -3,6 +3,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import '../models/transaction.dart';
 import '../models/expense.dart';
 import '../models/reminder_settings.dart';
+import '../models/recurring_transaction.dart';
 import 'tables/groups.dart';
 import 'tables/members.dart';
 import 'tables/transactions.dart';
@@ -12,6 +13,7 @@ import 'tables/transfer_details.dart';
 import 'tables/tags.dart';
 import 'tables/transaction_tags.dart';
 import 'tables/group_reminders.dart';
+import 'tables/recurring_transactions.dart';
 
 import 'tables/attachments.dart';
 
@@ -29,13 +31,14 @@ part 'database.g.dart';
     TransactionTags,
     Attachments,
     GroupReminders,
+    RecurringTransactions,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -51,6 +54,9 @@ class AppDatabase extends _$AppDatabase {
             expenseDetails.originalCurrencyCode,
           );
           await m.addColumn(expenseDetails, expenseDetails.originalAmountMinor);
+        }
+        if (from < 3) {
+          await m.createTable(recurringTransactions);
         }
       },
       beforeOpen: (details) async {
