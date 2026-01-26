@@ -4,7 +4,7 @@ part 'settlement_suggestion.freezed.dart';
 part 'settlement_suggestion.g.dart';
 
 @freezed
-class SettlementSuggestion with _$SettlementSuggestion {
+abstract class SettlementSuggestion with _$SettlementSuggestion {
   const factory SettlementSuggestion({
     required String fromMemberId,
     required String fromMemberName,

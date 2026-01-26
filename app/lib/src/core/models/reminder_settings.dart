@@ -6,7 +6,7 @@ part 'reminder_settings.g.dart';
 enum ReminderSchedule { daily, weekly, monthly }
 
 @freezed
-class ReminderSettings with _$ReminderSettings {
+abstract class ReminderSettings with _$ReminderSettings {
   const factory ReminderSettings({
     required String groupId,
     required bool enabled,

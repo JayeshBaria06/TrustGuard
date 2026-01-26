@@ -5,7 +5,7 @@ import '../../../app/providers.dart';
 part 'lock_providers.freezed.dart';
 
 @freezed
-class AppLockState with _$AppLockState {
+abstract class AppLockState with _$AppLockState {
   const factory AppLockState({
     required bool isLocked,
     @Default(0) int failedAttempts,

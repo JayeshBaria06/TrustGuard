@@ -6,7 +6,7 @@ part 'expense.g.dart';
 enum SplitType { equal, custom }
 
 @freezed
-class ExpenseParticipant with _$ExpenseParticipant {
+abstract class ExpenseParticipant with _$ExpenseParticipant {
   const factory ExpenseParticipant({
     required String memberId,
     required int owedAmountMinor,
@@ -17,7 +17,7 @@ class ExpenseParticipant with _$ExpenseParticipant {
 }
 
 @freezed
-class ExpenseDetail with _$ExpenseDetail {
+abstract class ExpenseDetail with _$ExpenseDetail {
   const factory ExpenseDetail({
     required String payerMemberId,
     required int totalAmountMinor,

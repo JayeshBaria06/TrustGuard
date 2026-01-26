@@ -9,7 +9,7 @@ part 'backup.freezed.dart';
 part 'backup.g.dart';
 
 @freezed
-class Backup with _$Backup {
+abstract class Backup with _$Backup {
   const factory Backup({
     required int schemaVersion,
     required DateTime createdAt,

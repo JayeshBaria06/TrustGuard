@@ -4,7 +4,7 @@ part 'balance.freezed.dart';
 part 'balance.g.dart';
 
 @freezed
-class MemberBalance with _$MemberBalance {
+abstract class MemberBalance with _$MemberBalance {
   const factory MemberBalance({
     required String memberId,
     required String memberName,

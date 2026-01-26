@@ -4,7 +4,7 @@ part 'transaction_filter.freezed.dart';
 part 'transaction_filter.g.dart';
 
 @freezed
-class TransactionFilter with _$TransactionFilter {
+abstract class TransactionFilter with _$TransactionFilter {
   const factory TransactionFilter({
     String? searchQuery,
     Set<String>? tagIds,

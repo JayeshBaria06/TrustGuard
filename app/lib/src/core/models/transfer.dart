@@ -4,7 +4,7 @@ part 'transfer.freezed.dart';
 part 'transfer.g.dart';
 
 @freezed
-class TransferDetail with _$TransferDetail {
+abstract class TransferDetail with _$TransferDetail {
   const factory TransferDetail({
     required String fromMemberId,
     required String toMemberId,
