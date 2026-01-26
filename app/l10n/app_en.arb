@@ -100,6 +100,11 @@
       }
     }
   },
+  "appearanceSection": "Appearance",
+  "themeTitle": "Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
   "display": "Display",
   "rounding": "Rounding",
   "decimalPlaces": "{count, plural, =1{1 decimal place} other{{count} decimal places}}",

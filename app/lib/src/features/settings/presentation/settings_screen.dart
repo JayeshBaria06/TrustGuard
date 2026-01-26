@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../app/app.dart';
 import '../providers/lock_providers.dart';
 import '../providers/notification_providers.dart';
+import '../providers/theme_providers.dart';
+import '../services/theme_service.dart';
 import 'debug_logs_screen.dart';
 import '../../../app/providers.dart';
 
@@ -21,6 +23,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final lockState = ref.watch(appLockStateProvider);
+    final themeState = ref.watch(themeStateProvider);
     final notificationsEnabled = ref.watch(notificationPermissionProvider);
     final rounding = ref.watch(roundingProvider);
     final logsAsync = ref.watch(debugLogsProvider);
@@ -49,6 +52,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ref.read(roundingProvider.notifier).setRounding(value);
                 }
               },
+            ),
+          ),
+          const Divider(),
+          _buildSectionHeader(context, context.l10n.appearanceSection),
+          ListTile(
+            leading: const Icon(Icons.palette_outlined),
+            title: Text(context.l10n.themeTitle),
+            subtitle: Text(_getThemeModeName(context, themeState.currentMode)),
+            trailing: SegmentedButton<ThemeModePreference>(
+              segments: [
+                ButtonSegment(
+                  value: ThemeModePreference.system,
+                  icon: const Icon(Icons.brightness_auto_outlined),
+                  tooltip: context.l10n.themeSystem,
+                ),
+                ButtonSegment(
+                  value: ThemeModePreference.light,
+                  icon: const Icon(Icons.light_mode_outlined),
+                  tooltip: context.l10n.themeLight,
+                ),
+                ButtonSegment(
+                  value: ThemeModePreference.dark,
+                  icon: const Icon(Icons.dark_mode_outlined),
+                  tooltip: context.l10n.themeDark,
+                ),
+              ],
+              selected: {themeState.currentMode},
+              onSelectionChanged: (Set<ThemeModePreference> newSelection) {
+                ref
+                    .read(themeStateProvider.notifier)
+                    .setThemeMode(newSelection.first);
+              },
+              showSelectedIcon: false,
             ),
           ),
           const Divider(),
@@ -208,6 +244,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  String _getThemeModeName(BuildContext context, ThemeModePreference mode) {
+    switch (mode) {
+      case ThemeModePreference.system:
+        return context.l10n.themeSystem;
+      case ThemeModePreference.light:
+        return context.l10n.themeLight;
+      case ThemeModePreference.dark:
+        return context.l10n.themeDark;
+    }
   }
 
   Future<void> _showRemovePinDialog(BuildContext context, WidgetRef ref) async {
