@@ -1,5 +1,4 @@
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trustguard/src/app/providers.dart';
@@ -8,6 +7,7 @@ import 'package:trustguard/src/core/models/expense.dart';
 import 'package:trustguard/src/core/models/transaction.dart';
 import 'package:trustguard/src/features/transactions/presentation/transaction_list_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/localization_helper.dart';
 import '../../../helpers/shared_prefs_helper.dart';
 
 void main() {
@@ -54,7 +54,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp(home: TransactionListScreen(groupId: groupId)),
+        child: wrapWithLocalization(TransactionListScreen(groupId: groupId)),
       ),
     );
 
@@ -118,7 +118,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp(home: TransactionListScreen(groupId: groupId)),
+        child: wrapWithLocalization(TransactionListScreen(groupId: groupId)),
       ),
     );
 
@@ -128,7 +128,7 @@ void main() {
 
     expect(find.text('Lunch'), findsOneWidget);
     expect(find.text(r'$15.00'), findsOneWidget);
-    expect(find.text('Paid by Alice for 1 members'), findsOneWidget);
+    expect(find.text('Paid by Alice for 1 member'), findsOneWidget);
 
     await db.close();
     await tester.pump(Duration.zero);

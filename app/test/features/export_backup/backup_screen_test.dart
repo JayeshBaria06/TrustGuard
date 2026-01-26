@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:trustguard/src/app/providers.dart';
 import 'package:trustguard/src/features/export_backup/presentation/backup_screen.dart';
 import 'package:trustguard/src/features/export_backup/services/backup_service.dart';
+import '../../helpers/localization_helper.dart';
 import '../../helpers/shared_prefs_helper.dart';
 
 class MockBackupService extends Mock implements BackupService {}
@@ -25,7 +26,7 @@ void main() {
         backupServiceProvider.overrideWithValue(mockBackupService),
         ...prefsOverrides,
       ],
-      child: const MaterialApp(home: BackupScreen()),
+      child: wrapWithLocalization(const BackupScreen()),
     );
   }
 

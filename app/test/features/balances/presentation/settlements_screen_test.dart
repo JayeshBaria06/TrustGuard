@@ -1,5 +1,4 @@
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trustguard/src/app/providers.dart';
@@ -8,6 +7,7 @@ import 'package:trustguard/src/core/models/expense.dart';
 import 'package:trustguard/src/core/models/transaction.dart';
 import 'package:trustguard/src/features/balances/presentation/settlements_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/localization_helper.dart';
 import '../../../helpers/shared_prefs_helper.dart';
 
 void main() {
@@ -106,7 +106,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp(home: SettlementsScreen(groupId: groupId)),
+        child: wrapWithLocalization(SettlementsScreen(groupId: groupId)),
       ),
     );
 

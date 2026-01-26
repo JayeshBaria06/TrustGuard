@@ -10,6 +10,7 @@ import 'package:trustguard/src/core/models/reminder_settings.dart';
 import 'package:trustguard/src/core/platform/notification_service.dart';
 import 'package:trustguard/src/features/reminders/presentation/reminder_settings_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/localization_helper.dart';
 import '../../../helpers/shared_prefs_helper.dart';
 
 class MockNotificationService extends Mock implements NotificationService {}
@@ -72,7 +73,7 @@ void main() {
           ),
           ...prefsOverrides,
         ],
-        child: MaterialApp(home: ReminderSettingsScreen(groupId: groupId)),
+        child: wrapWithLocalization(ReminderSettingsScreen(groupId: groupId)),
       ),
     );
 

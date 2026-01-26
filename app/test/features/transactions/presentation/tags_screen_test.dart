@@ -7,6 +7,7 @@ import 'package:trustguard/src/core/database/database.dart';
 import 'package:trustguard/src/core/models/transaction.dart';
 import 'package:trustguard/src/features/transactions/presentation/tags_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/localization_helper.dart';
 import '../../../helpers/shared_prefs_helper.dart';
 
 void main() {
@@ -40,7 +41,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp(home: TagsScreen(groupId: groupId)),
+        child: wrapWithLocalization(TagsScreen(groupId: groupId)),
       ),
     );
 
@@ -94,7 +95,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp(home: TagsScreen(groupId: groupId)),
+        child: wrapWithLocalization(TagsScreen(groupId: groupId)),
       ),
     );
 
@@ -118,7 +119,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp(home: TagsScreen(groupId: groupId)),
+        child: wrapWithLocalization(TagsScreen(groupId: groupId)),
       ),
     );
 

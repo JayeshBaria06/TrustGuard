@@ -8,6 +8,7 @@ import 'package:trustguard/src/core/models/expense.dart';
 import 'package:trustguard/src/core/models/transaction.dart';
 import 'package:trustguard/src/features/transactions/presentation/add_expense_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/localization_helper.dart';
 import '../../../helpers/shared_prefs_helper.dart';
 
 void main() {
@@ -67,7 +68,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp(home: AddExpenseScreen(groupId: groupId)),
+        child: wrapWithLocalization(AddExpenseScreen(groupId: groupId)),
       ),
     );
 
@@ -146,8 +147,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp(
-          home: AddExpenseScreen(groupId: groupId, transactionId: txId),
+        child: wrapWithLocalization(
+          AddExpenseScreen(groupId: groupId, transactionId: txId),
         ),
       ),
     );
@@ -192,7 +193,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp(home: AddExpenseScreen(groupId: groupId)),
+        child: wrapWithLocalization(AddExpenseScreen(groupId: groupId)),
       ),
     );
 

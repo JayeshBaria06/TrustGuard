@@ -6,6 +6,7 @@ import 'package:trustguard/src/app/providers.dart';
 import 'package:trustguard/src/features/settings/presentation/lock_screen.dart';
 import 'package:trustguard/src/features/settings/providers/lock_providers.dart';
 import 'package:trustguard/src/core/platform/app_lock_service.dart';
+import '../../helpers/localization_helper.dart';
 
 class MockAppLockService extends Mock implements AppLockService {}
 
@@ -28,7 +29,7 @@ void main() {
   Widget createTestWidget(ProviderContainer container) {
     return UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(home: LockScreen()),
+      child: wrapWithLocalization(const LockScreen()),
     );
   }
 

@@ -9,6 +9,7 @@ import 'package:trustguard/src/core/models/expense.dart';
 import 'package:trustguard/src/core/models/transaction.dart';
 import 'package:trustguard/src/features/transactions/presentation/transaction_detail_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/localization_helper.dart' as l10n;
 import '../../../helpers/shared_prefs_helper.dart';
 
 void main() {
@@ -94,6 +95,8 @@ void main() {
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
         child: MaterialApp.router(
+          localizationsDelegates: l10n.localizationsDelegates,
+          supportedLocales: l10n.supportedLocales,
           routerConfig: GoRouter(
             initialLocation: '/detail',
             routes: [
@@ -174,6 +177,8 @@ void main() {
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
         child: MaterialApp.router(
+          localizationsDelegates: l10n.localizationsDelegates,
+          supportedLocales: l10n.supportedLocales,
           routerConfig: GoRouter(
             initialLocation: '/detail',
             routes: [
@@ -254,7 +259,11 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp.router(routerConfig: router),
+        child: MaterialApp.router(
+          localizationsDelegates: l10n.localizationsDelegates,
+          supportedLocales: l10n.supportedLocales,
+          routerConfig: router,
+        ),
       ),
     );
 

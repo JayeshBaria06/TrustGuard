@@ -6,6 +6,7 @@ import 'package:trustguard/src/app/providers.dart';
 import 'package:trustguard/src/core/database/database.dart';
 import 'package:trustguard/src/features/groups/presentation/members_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../helpers/localization_helper.dart';
 import '../../../helpers/shared_prefs_helper.dart';
 
 void main() {
@@ -39,7 +40,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp(home: MembersScreen(groupId: groupId)),
+        child: wrapWithLocalization(MembersScreen(groupId: groupId)),
       ),
     );
 
@@ -90,7 +91,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db), ...prefsOverrides],
-        child: MaterialApp(home: MembersScreen(groupId: groupId)),
+        child: wrapWithLocalization(MembersScreen(groupId: groupId)),
       ),
     );
 

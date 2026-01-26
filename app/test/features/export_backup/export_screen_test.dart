@@ -9,6 +9,7 @@ import 'package:trustguard/src/features/export_backup/presentation/export_screen
 import 'package:trustguard/src/features/export_backup/services/export_service.dart';
 import 'package:trustguard/src/features/transactions/presentation/transactions_providers.dart';
 import 'package:trustguard/src/features/settings/providers/lock_providers.dart';
+import '../../helpers/localization_helper.dart';
 import '../../helpers/shared_prefs_helper.dart';
 
 class MockExportService extends Mock implements ExportService {}
@@ -44,7 +45,7 @@ void main() {
           groupId,
         ).overrideWith((ref) => Stream.value([])),
       ],
-      child: MaterialApp(home: ExportScreen(groupId: groupId)),
+      child: wrapWithLocalization(ExportScreen(groupId: groupId)),
     );
   }
 

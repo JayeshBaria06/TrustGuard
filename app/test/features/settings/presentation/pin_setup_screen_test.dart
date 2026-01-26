@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:trustguard/src/app/providers.dart';
 import 'package:trustguard/src/features/settings/presentation/pin_setup_screen.dart';
 import 'package:trustguard/src/core/platform/app_lock_service.dart';
+import 'package:trustguard/src/generated/app_localizations.dart';
 
 class MockAppLockService extends Mock implements AppLockService {}
 
@@ -25,6 +26,8 @@ void main() {
     return UncontrolledProviderScope(
       container: container,
       child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Builder(
             builder: (context) {
