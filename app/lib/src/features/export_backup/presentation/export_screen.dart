@@ -149,7 +149,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           loading: () => const Text('Counting transactions...'),
-                          error: (_, __) =>
+                          error: (_, _) =>
                               const Text('Error counting transactions'),
                         ),
                         const SizedBox(height: 16),
