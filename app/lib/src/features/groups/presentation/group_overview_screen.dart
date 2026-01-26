@@ -266,26 +266,30 @@ class GroupOverviewScreen extends ConsumerWidget {
     required VoidCallback onTap,
     required Color color,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppTheme.space12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.space12),
-        decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).dividerColor),
-          borderRadius: BorderRadius.circular(AppTheme.space12),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color),
-            const SizedBox(width: AppTheme.space12),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+    return Semantics(
+      label: 'Quick action: $label',
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppTheme.space12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.space12),
+          decoration: BoxDecoration(
+            border: Border.all(color: Theme.of(context).dividerColor),
+            borderRadius: BorderRadius.circular(AppTheme.space12),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: color),
+              const SizedBox(width: AppTheme.space12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

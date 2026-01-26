@@ -156,6 +156,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                 }
 
                 return ListView.separated(
+                  key: const PageStorageKey('members_list'),
                   itemCount: members.length,
                   separatorBuilder: (context, index) =>
                       const Divider(height: 1),
@@ -164,9 +165,11 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                     final isRemoved = member.removedAt != null;
 
                     return ListTile(
+                      key: ValueKey(member.id),
                       leading: CircleAvatar(
                         child: Text(member.displayName[0].toUpperCase()),
                       ),
+
                       title: Text(
                         member.displayName,
                         style: TextStyle(

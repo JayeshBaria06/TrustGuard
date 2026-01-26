@@ -261,53 +261,65 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            TextFormField(
-                              controller: _amountController,
-                              decoration: InputDecoration(
-                                labelText: 'Amount',
-                                prefixText: '$currency ',
-                                border: const OutlineInputBorder(),
-                              ),
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter an amount';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Please enter a valid number';
-                                }
-                                return null;
-                              },
-                              autofocus: !isEdit,
-                            ),
-                            const SizedBox(height: AppTheme.space16),
-                            TextFormField(
-                              controller: _noteController,
-                              decoration: const InputDecoration(
-                                labelText: 'Note',
-                                hintText: 'e.g. Settlement',
-                                border: OutlineInputBorder(),
-                              ),
-                              textCapitalization: TextCapitalization.sentences,
-                            ),
-                            const SizedBox(height: AppTheme.space16),
-                            ListTile(
-                              title: const Text('Date'),
-                              subtitle: Text(
-                                DateFormat.yMMMd().format(_occurredAt),
-                              ),
-                              trailing: const Icon(Icons.calendar_today),
-                              onTap: () => _selectDate(context),
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  color: Theme.of(context).dividerColor,
+                            Semantics(
+                              label: 'Transfer amount in $currency',
+                              child: TextFormField(
+                                controller: _amountController,
+                                decoration: InputDecoration(
+                                  labelText: 'Amount',
+                                  prefixText: '$currency ',
+                                  border: const OutlineInputBorder(),
                                 ),
-                                borderRadius: BorderRadius.circular(4),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter an amount';
+                                  }
+                                  if (double.tryParse(value) == null) {
+                                    return 'Please enter a valid number';
+                                  }
+                                  return null;
+                                },
+                                autofocus: !isEdit,
                               ),
                             ),
+                            const SizedBox(height: AppTheme.space16),
+                            Semantics(
+                              label: 'Transfer note',
+                              child: TextFormField(
+                                controller: _noteController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Note',
+                                  hintText: 'e.g. Settlement',
+                                  border: OutlineInputBorder(),
+                                ),
+                                textCapitalization:
+                                    TextCapitalization.sentences,
+                              ),
+                            ),
+                            const SizedBox(height: AppTheme.space16),
+                            Semantics(
+                              label: 'Transfer date',
+                              button: true,
+                              child: ListTile(
+                                title: const Text('Date'),
+                                subtitle: Text(
+                                  DateFormat.yMMMd().format(_occurredAt),
+                                ),
+                                trailing: const Icon(Icons.calendar_today),
+                                onTap: () => _selectDate(context),
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+
                             const SizedBox(height: AppTheme.space16),
                             _buildTagsSection(),
                             const SizedBox(height: AppTheme.space24),

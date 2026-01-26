@@ -35,22 +35,26 @@ class HomeScreen extends ConsumerWidget {
       body: groupsAsync.when(
         data: (groups) {
           if (groups.isEmpty) {
-            return EmptyState(
-              icon: showArchived
-                  ? Icons.archive_outlined
-                  : Icons.group_off_outlined,
-              title: showArchived ? 'No archived groups' : 'No groups yet',
-              message: showArchived
-                  ? 'Archived groups will appear here.'
-                  : 'Create a group to start tracking expenses and settlements with your friends.',
-              actionLabel: showArchived ? null : 'Create Group',
-              onActionPressed: showArchived
-                  ? null
-                  : () => context.push('/group/create'),
+            return Semantics(
+              label: 'No groups container',
+              child: EmptyState(
+                icon: showArchived
+                    ? Icons.archive_outlined
+                    : Icons.group_off_outlined,
+                title: showArchived ? 'No archived groups' : 'No groups yet',
+                message: showArchived
+                    ? 'Archived groups will appear here.'
+                    : 'Create a group to start tracking expenses and settlements with your friends.',
+                actionLabel: showArchived ? null : 'Create Group',
+                onActionPressed: showArchived
+                    ? null
+                    : () => context.push('/group/create'),
+              ),
             );
           }
 
           return ListView.builder(
+            key: const PageStorageKey('home_group_list'),
             padding: const EdgeInsets.all(AppTheme.space16),
             itemCount: groups.length,
             itemBuilder: (context, index) {
@@ -58,101 +62,111 @@ class HomeScreen extends ConsumerWidget {
               final group = item.group;
               final isArchived = group.archivedAt != null;
 
-              return Card(
-                clipBehavior: Clip.antiAlias,
-                margin: const EdgeInsets.only(bottom: AppTheme.space16),
-                child: ListTile(
-                  title: Text(
-                    group.name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      decoration: isArchived
-                          ? TextDecoration.lineThrough
-                          : null,
-                    ),
-                  ),
-                  subtitle: Text(
-                    '${item.memberCount} members • ${group.currencyCode}',
-                    style: TextStyle(
-                      fontStyle: isArchived ? FontStyle.italic : null,
-                    ),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text('Balance', style: TextStyle(fontSize: 11)),
-                          Text(
-                            'Settled',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: isArchived ? Colors.grey : Colors.green,
-                            ),
-                          ),
-                        ],
+              return Semantics(
+                label: 'Group card: ${group.name}',
+                child: Card(
+                  key: ValueKey(group.id),
+                  clipBehavior: Clip.antiAlias,
+                  margin: const EdgeInsets.only(bottom: AppTheme.space16),
+
+                  child: ListTile(
+                    title: Text(
+                      group.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        decoration: isArchived
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
-                      const SizedBox(width: AppTheme.space8),
-                      PopupMenuButton<String>(
-                        onSelected: (value) async {
-                          switch (value) {
-                            case 'edit':
-                              context.push('/group/${group.id}/edit');
-                              break;
-                            case 'archive':
-                              await ref
-                                  .read(groupRepositoryProvider)
-                                  .archiveGroup(group.id);
-                              break;
-                            case 'unarchive':
-                              await ref
-                                  .read(groupRepositoryProvider)
-                                  .unarchiveGroup(group.id);
-                              break;
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: ListTile(
-                              leading: Icon(Icons.edit_outlined),
-                              title: Text('Edit'),
-                              contentPadding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
+                    ),
+                    subtitle: Text(
+                      '${item.memberCount} members • ${group.currencyCode}',
+                      style: TextStyle(
+                        fontStyle: isArchived ? FontStyle.italic : null,
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text(
+                              'Balance',
+                              style: TextStyle(fontSize: 11),
                             ),
-                          ),
-                          if (!isArchived)
-                            const PopupMenuItem(
-                              value: 'archive',
-                              child: ListTile(
-                                leading: Icon(Icons.archive_outlined),
-                                title: Text('Archive'),
-                                contentPadding: EdgeInsets.zero,
-                                visualDensity: VisualDensity.compact,
+                            Text(
+                              'Settled',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isArchived ? Colors.grey : Colors.green,
                               ),
-                            )
-                          else
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: AppTheme.space8),
+                        PopupMenuButton<String>(
+                          onSelected: (value) async {
+                            switch (value) {
+                              case 'edit':
+                                context.push('/group/${group.id}/edit');
+                                break;
+                              case 'archive':
+                                await ref
+                                    .read(groupRepositoryProvider)
+                                    .archiveGroup(group.id);
+                                break;
+                              case 'unarchive':
+                                await ref
+                                    .read(groupRepositoryProvider)
+                                    .unarchiveGroup(group.id);
+                                break;
+                            }
+                          },
+                          itemBuilder: (context) => [
                             const PopupMenuItem(
-                              value: 'unarchive',
+                              value: 'edit',
                               child: ListTile(
-                                leading: Icon(Icons.unarchive_outlined),
-                                title: Text('Unarchive'),
+                                leading: Icon(Icons.edit_outlined),
+                                title: Text('Edit'),
                                 contentPadding: EdgeInsets.zero,
                                 visualDensity: VisualDensity.compact,
                               ),
                             ),
-                        ],
-                      ),
-                    ],
+                            if (!isArchived)
+                              const PopupMenuItem(
+                                value: 'archive',
+                                child: ListTile(
+                                  leading: Icon(Icons.archive_outlined),
+                                  title: Text('Archive'),
+                                  contentPadding: EdgeInsets.zero,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              )
+                            else
+                              const PopupMenuItem(
+                                value: 'unarchive',
+                                child: ListTile(
+                                  leading: Icon(Icons.unarchive_outlined),
+                                  title: Text('Unarchive'),
+                                  contentPadding: EdgeInsets.zero,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                          ],
+                          tooltip: 'Group options',
+                        ),
+                      ],
+                    ),
+                    onTap: () => context.push('/group/${group.id}'),
                   ),
-                  onTap: () => context.push('/group/${group.id}'),
                 ),
               );
             },
           );
         },
+
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(

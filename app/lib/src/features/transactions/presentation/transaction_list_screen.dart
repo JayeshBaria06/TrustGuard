@@ -42,6 +42,7 @@ class TransactionListScreen extends ConsumerWidget {
                 builder: (context) => TransactionFilterSheet(groupId: groupId),
               );
             },
+            tooltip: 'Filter Transactions',
           ),
         ],
       ),
@@ -49,33 +50,40 @@ class TransactionListScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(AppTheme.space8),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search note...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: filter.searchQuery?.isNotEmpty ?? false
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          ref
-                              .read(transactionFilterProvider(groupId).notifier)
-                              .state = filter.copyWith(
-                            searchQuery: '',
-                          );
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            child: Semantics(
+              label: 'Search transactions by note',
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search note...',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: filter.searchQuery?.isNotEmpty ?? false
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            ref
+                                .read(
+                                  transactionFilterProvider(groupId).notifier,
+                                )
+                                .state = filter.copyWith(
+                              searchQuery: '',
+                            );
+                          },
+                          tooltip: 'Clear Search',
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                onChanged: (value) {
+                  ref.read(transactionFilterProvider(groupId).notifier).state =
+                      filter.copyWith(searchQuery: value);
+                },
               ),
-              onChanged: (value) {
-                ref.read(transactionFilterProvider(groupId).notifier).state =
-                    filter.copyWith(searchQuery: value);
-              },
             ),
           ),
+
           if (!filter.isEmpty) _ActiveFilterChips(groupId: groupId),
           Expanded(
             child: transactionsAsync.when(
@@ -125,6 +133,7 @@ class TransactionListScreen extends ConsumerWidget {
                             transactionsByGroupProvider(groupId).future,
                           ),
                           child: ListView.separated(
+                            key: const PageStorageKey('transaction_list'),
                             padding: const EdgeInsets.all(AppTheme.space8),
                             itemCount: transactions.length,
                             separatorBuilder: (context, index) =>
@@ -132,6 +141,7 @@ class TransactionListScreen extends ConsumerWidget {
                             itemBuilder: (context, index) {
                               final tx = transactions[index];
                               return _TransactionListItem(
+                                key: ValueKey(tx.id),
                                 transaction: tx,
                                 memberMap: memberMap,
                                 currencyCode: currencyCode,
@@ -322,6 +332,7 @@ class _TransactionListItem extends ConsumerWidget {
   final VoidCallback onTap;
 
   const _TransactionListItem({
+    super.key,
     required this.transaction,
     required this.memberMap,
     required this.currencyCode,

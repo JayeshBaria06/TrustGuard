@@ -62,7 +62,8 @@ class Validators {
       return ValidationResult.failure('Group name cannot be empty');
     }
 
-    if (group.currencyCode.trim().length != 3) {
+    if (group.currencyCode.trim().length != 3 ||
+        !RegExp(r'^[A-Z]{3}$').hasMatch(group.currencyCode.toUpperCase())) {
       return ValidationResult.failure('Invalid currency code');
     }
 

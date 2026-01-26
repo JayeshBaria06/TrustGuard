@@ -222,4 +222,43 @@ void main() {
     expect(restoredReminders.length, 1);
     expect(restoredReminders.first.groupId, newGroupId);
   });
+
+  test('restoreFromBackup throws on incompatible version', () async {
+    final now = DateTime(2026, 1, 26, 12, 0);
+    final backup = model.Backup(
+      schemaVersion: 99, // Incompatible
+      createdAt: now,
+      groups: [],
+      members: [],
+      transactions: [],
+      tags: [],
+      reminderSettings: [],
+    );
+
+    final jsonString = jsonEncode(backup.toJson());
+    final mockFile = MockFile();
+    when(() => mockFile.readAsString()).thenAnswer((_) async => jsonString);
+
+    expect(
+      () => backupService.restoreFromBackup(mockFile),
+      throwsA(
+        isA<Exception>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Incompatible backup version: 99'),
+        ),
+      ),
+    );
+  });
+
+  test('restoreFromBackup throws on malformed JSON', () async {
+    const jsonString = '{ invalid json }';
+    final mockFile = MockFile();
+    when(() => mockFile.readAsString()).thenAnswer((_) async => jsonString);
+
+    expect(
+      () => backupService.restoreFromBackup(mockFile),
+      throwsA(isA<FormatException>()),
+    );
+  });
 }
