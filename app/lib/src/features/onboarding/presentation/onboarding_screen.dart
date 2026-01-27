@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../app/providers.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../../ui/animations/lottie_assets.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -21,21 +23,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       title: 'No Account Needed',
       description:
           'TrustGuard is 100% offline. No cloud accounts, no passwords, just your data on your device.',
-      icon: Icons.cloud_off,
+      lottiePath: LottieAssets.onboarding1,
       color: Colors.blue,
     ),
     const _OnboardingSlide(
       title: 'Your Data Stays Private',
       description:
           'Your financial data never leaves your device. We don\'t track you, and we don\'t have access to your expenses.',
-      icon: Icons.lock_outline,
+      lottiePath: LottieAssets.onboarding2,
       color: Colors.green,
     ),
     const _OnboardingSlide(
       title: 'Easy Expense Splitting',
       description:
           'Track shared expenses with friends, manage group balances, and settle debts efficiently.',
-      icon: Icons.people_outline,
+      lottiePath: LottieAssets.onboarding3,
       color: Colors.orange,
     ),
   ];
@@ -92,7 +94,35 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(slide.icon, size: 120, color: slide.color),
+                        SizedBox(
+                          height: 200,
+                          width: 200,
+                          child: Lottie.asset(
+                            slide.lottiePath,
+                            fit: BoxFit.contain,
+                            animate: !MediaQuery.of(context).disableAnimations,
+                            repeat: !WidgetsBinding.instance.runtimeType
+                                .toString()
+                                .contains('TestWidgetsFlutterBinding'),
+                            frameBuilder: (context, child, composition) {
+                              if (composition == null) {
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    color: slide.color.withAlpha(128),
+                                  ),
+                                );
+                              }
+                              return child;
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.error_outline,
+                                size: 120,
+                                color: slide.color,
+                              );
+                            },
+                          ),
+                        ),
                         const SizedBox(height: AppTheme.space32),
                         Text(
                           slide.title,
@@ -175,13 +205,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 class _OnboardingSlide {
   final String title;
   final String description;
-  final IconData icon;
+  final String lottiePath;
   final Color color;
 
   const _OnboardingSlide({
     required this.title,
     required this.description,
-    required this.icon,
+    required this.lottiePath,
     required this.color,
   });
 }
