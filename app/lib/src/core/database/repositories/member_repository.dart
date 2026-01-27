@@ -18,6 +18,7 @@ abstract class MemberRepository {
   Future<void> updateMember(model.Member member);
   Future<void> softDeleteMember(String id);
   Future<void> undoSoftDeleteMember(String id);
+  Future<void> updateMemberOrder(String groupId, List<String> memberIds);
 }
 
 class DriftMemberRepository implements MemberRepository {
@@ -27,7 +28,12 @@ class DriftMemberRepository implements MemberRepository {
 
   @override
   Future<List<model.Member>> getAllMembers() async {
-    final rows = await _db.select(_db.members).get();
+    final query = _db.select(_db.members)
+      ..orderBy([
+        (t) => OrderingTerm.asc(t.orderIndex),
+        (t) => OrderingTerm.asc(t.displayName),
+      ]);
+    final rows = await query.get();
     return rows.map(MemberMapper.toModel).toList();
   }
 
@@ -41,7 +47,10 @@ class DriftMemberRepository implements MemberRepository {
     if (!includeRemoved) {
       query.where((t) => t.removedAt.isNull());
     }
-    query.orderBy([(t) => OrderingTerm.asc(t.displayName)]);
+    query.orderBy([
+      (t) => OrderingTerm.asc(t.orderIndex),
+      (t) => OrderingTerm.asc(t.displayName),
+    ]);
     final rows = await query.get();
     return rows.map(MemberMapper.toModel).toList();
   }
@@ -56,7 +65,10 @@ class DriftMemberRepository implements MemberRepository {
     if (!includeRemoved) {
       query.where((t) => t.removedAt.isNull());
     }
-    query.orderBy([(t) => OrderingTerm.asc(t.displayName)]);
+    query.orderBy([
+      (t) => OrderingTerm.asc(t.orderIndex),
+      (t) => OrderingTerm.asc(t.displayName),
+    ]);
     return query.watch().map((rows) => rows.map(MemberMapper.toModel).toList());
   }
 
@@ -91,5 +103,15 @@ class DriftMemberRepository implements MemberRepository {
     await (_db.update(_db.members)..where((t) => t.id.equals(id))).write(
       const MembersCompanion(removedAt: Value(null)),
     );
+  }
+
+  @override
+  Future<void> updateMemberOrder(String groupId, List<String> memberIds) async {
+    await _db.transaction(() async {
+      for (int i = 0; i < memberIds.length; i++) {
+        await (_db.update(_db.members)..where((t) => t.id.equals(memberIds[i])))
+            .write(MembersCompanion(orderIndex: Value(i)));
+      }
+    });
   }
 }

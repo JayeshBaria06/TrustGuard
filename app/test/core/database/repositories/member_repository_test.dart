@@ -115,5 +115,40 @@ void main() {
       expect(members[1].displayName, equals('B Member'));
       expect(members[2].displayName, equals('C Member'));
     });
+
+    test('ordering by orderIndex then display name', () async {
+      await repository.createMember(
+        testMember.copyWith(id: 'm1', displayName: 'B Member', orderIndex: 2),
+      );
+      await repository.createMember(
+        testMember.copyWith(id: 'm2', displayName: 'A Member', orderIndex: 1),
+      );
+      await repository.createMember(
+        testMember.copyWith(id: 'm3', displayName: 'C Member', orderIndex: 1),
+      );
+
+      final members = await repository.getMembersByGroup('group-1');
+      // m2 and m3 both have orderIndex 1, so they should be ordered by displayName
+      expect(members[0].id, equals('m2')); // A Member, orderIndex 1
+      expect(members[1].id, equals('m3')); // C Member, orderIndex 1
+      expect(members[2].id, equals('m1')); // B Member, orderIndex 2
+    });
+
+    test('updateMemberOrder updates orderIndex correctly', () async {
+      await repository.createMember(
+        testMember.copyWith(id: 'm1', displayName: 'B Member'),
+      );
+      await repository.createMember(
+        testMember.copyWith(id: 'm2', displayName: 'A Member'),
+      );
+
+      await repository.updateMemberOrder('group-1', ['m1', 'm2']);
+
+      final members = await repository.getMembersByGroup('group-1');
+      expect(members[0].id, equals('m1'));
+      expect(members[0].orderIndex, equals(0));
+      expect(members[1].id, equals('m2'));
+      expect(members[1].orderIndex, equals(1));
+    });
   });
 }
