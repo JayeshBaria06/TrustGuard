@@ -26,6 +26,8 @@ import 'widgets/date_group_header.dart';
 import '../../../ui/animations/staggered_list_animation.dart';
 import '../../../core/services/undoable_action_service.dart';
 import '../../../ui/components/undo_snackbar.dart';
+import '../../../ui/components/speed_dial_fab.dart';
+import 'quick_add_expense_sheet.dart';
 
 class TransactionListScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -330,47 +332,51 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddMenu(context);
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: SpeedDialFab(
+        items: [
+          SpeedDialItem(
+            icon: Icons.bolt,
+            label: context.l10n.quickAdd,
+            onPressed: _showQuickAdd,
+          ),
+          SpeedDialItem(
+            icon: Icons.add_shopping_cart,
+            label: context.l10n.addExpense,
+            onPressed: () => context.push(
+              '/group/${widget.groupId}/transactions/add-expense',
+            ),
+          ),
+          SpeedDialItem(
+            icon: Icons.sync_alt,
+            label: context.l10n.addTransfer,
+            onPressed: () => context.push(
+              '/group/${widget.groupId}/transactions/add-transfer',
+            ),
+          ),
+          SpeedDialItem(
+            icon: Icons.document_scanner_outlined,
+            label: context.l10n.scanReceipt,
+            onPressed: () => context.push(
+              '/group/${widget.groupId}/transactions/add-expense?scan=true',
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  void _showAddMenu(BuildContext context) {
+  void _showQuickAdd() {
     showModalBottomSheet<void>(
       context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(
-                Icons.add_shopping_cart,
-                color: Colors.orange,
-              ),
-              title: Text(context.l10n.addExpense),
-              onTap: () {
-                context.pop();
-                context.push(
-                  '/group/${widget.groupId}/transactions/add-expense',
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.sync_alt, color: Colors.blue),
-              title: Text(context.l10n.addTransfer),
-              onTap: () {
-                context.pop();
-                context.push(
-                  '/group/${widget.groupId}/transactions/add-transfer',
-                );
-              },
-            ),
-          ],
-        ),
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => QuickAddExpenseSheet(
+        groupId: widget.groupId,
+        onSuccess: () {
+          ref
+              .read(paginatedTransactionsProvider(widget.groupId).notifier)
+              .refresh();
+        },
       ),
     );
   }
