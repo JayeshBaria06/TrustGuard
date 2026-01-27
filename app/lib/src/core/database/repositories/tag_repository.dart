@@ -14,6 +14,7 @@ abstract class TagRepository {
   Future<void> deleteTag(String tagId);
   Future<void> assignTagsToTransaction(String txId, List<String> tagIds);
   Future<List<model.Tag>> getTagsByTransaction(String txId);
+  Future<void> updateTagOrder(String groupId, List<String> tagIds);
 }
 
 class DriftTagRepository implements TagRepository {
@@ -23,20 +24,35 @@ class DriftTagRepository implements TagRepository {
 
   @override
   Future<List<model.Tag>> getAllTags() async {
-    final rows = await _db.select(_db.tags).get();
+    final query = _db.select(_db.tags)
+      ..orderBy([
+        (t) => OrderingTerm.asc(t.orderIndex),
+        (t) => OrderingTerm.asc(t.name),
+      ]);
+    final rows = await query.get();
     return rows.map(TagMapper.toModel).toList();
   }
 
   @override
   Future<List<model.Tag>> getTagsByGroup(String groupId) async {
-    final query = _db.select(_db.tags)..where((t) => t.groupId.equals(groupId));
+    final query = _db.select(_db.tags)
+      ..where((t) => t.groupId.equals(groupId))
+      ..orderBy([
+        (t) => OrderingTerm.asc(t.orderIndex),
+        (t) => OrderingTerm.asc(t.name),
+      ]);
     final rows = await query.get();
     return rows.map(TagMapper.toModel).toList();
   }
 
   @override
   Stream<List<model.Tag>> watchTagsByGroup(String groupId) {
-    final query = _db.select(_db.tags)..where((t) => t.groupId.equals(groupId));
+    final query = _db.select(_db.tags)
+      ..where((t) => t.groupId.equals(groupId))
+      ..orderBy([
+        (t) => OrderingTerm.asc(t.orderIndex),
+        (t) => OrderingTerm.asc(t.name),
+      ]);
     return query.watch().map((rows) => rows.map(TagMapper.toModel).toList());
   }
 
@@ -53,7 +69,11 @@ class DriftTagRepository implements TagRepository {
     query.addColumns([countExp]);
     query
       ..where(_db.tags.groupId.equals(groupId))
-      ..groupBy([_db.tags.id]);
+      ..groupBy([_db.tags.id])
+      ..orderBy([
+        OrderingTerm.asc(_db.tags.orderIndex),
+        OrderingTerm.asc(_db.tags.name),
+      ]);
 
     return query.watch().map((rows) {
       return rows.map((row) {
@@ -133,16 +153,32 @@ class DriftTagRepository implements TagRepository {
 
   @override
   Future<List<model.Tag>> getTagsByTransaction(String txId) async {
-    final query = _db.select(_db.tags).join([
-      innerJoin(
-        _db.transactionTags,
-        _db.transactionTags.tagId.equalsExp(_db.tags.id),
-      ),
-    ])..where(_db.transactionTags.txId.equals(txId));
+    final query =
+        _db.select(_db.tags).join([
+            innerJoin(
+              _db.transactionTags,
+              _db.transactionTags.tagId.equalsExp(_db.tags.id),
+            ),
+          ])
+          ..where(_db.transactionTags.txId.equals(txId))
+          ..orderBy([
+            OrderingTerm.asc(_db.tags.orderIndex),
+            OrderingTerm.asc(_db.tags.name),
+          ]);
 
     final rows = await query.get();
     return rows
         .map((row) => TagMapper.toModel(row.readTable(_db.tags)))
         .toList();
+  }
+
+  @override
+  Future<void> updateTagOrder(String groupId, List<String> tagIds) async {
+    await _db.transaction(() async {
+      for (int i = 0; i < tagIds.length; i++) {
+        await (_db.update(_db.tags)..where((t) => t.id.equals(tagIds[i])))
+            .write(TagsCompanion(orderIndex: Value(i)));
+      }
+    });
   }
 }

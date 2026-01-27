@@ -149,5 +149,31 @@ void main() {
       expect(updatedAssignedTags, hasLength(1));
       expect(updatedAssignedTags.first.id, equals(tagId));
     });
+
+    test('updateTagOrder updates indices and queries return sorted', () async {
+      await repository.createTag(
+        const model.Tag(id: 'tag-1', groupId: groupId, name: 'C'),
+      );
+      await repository.createTag(
+        const model.Tag(id: 'tag-2', groupId: groupId, name: 'A'),
+      );
+      await repository.createTag(
+        const model.Tag(id: 'tag-3', groupId: groupId, name: 'B'),
+      );
+
+      // Initial order should be alphabetical because orderIndex is default 0
+      var tags = await repository.getTagsByGroup(groupId);
+      expect(tags.map((t) => t.name).toList(), equals(['A', 'B', 'C']));
+
+      // Update order to C, B, A
+      await repository.updateTagOrder(groupId, ['tag-1', 'tag-3', 'tag-2']);
+
+      tags = await repository.getTagsByGroup(groupId);
+      expect(
+        tags.map((t) => t.id).toList(),
+        equals(['tag-1', 'tag-3', 'tag-2']),
+      );
+      expect(tags.map((t) => t.name).toList(), equals(['C', 'B', 'A']));
+    });
   });
 }
