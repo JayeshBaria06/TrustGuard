@@ -688,6 +688,12 @@ abstract class AppLocalizations {
   /// **'Action Required'**
   String get actionRequired;
 
+  /// No description provided for @actionUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'Action undone'**
+  String get actionUndone;
+
   /// No description provided for @incoming.
   ///
   /// In en, this message translates to:

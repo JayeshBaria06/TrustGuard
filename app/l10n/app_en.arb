@@ -200,6 +200,7 @@
   "transactionDeleted": "Transaction deleted",
   "undo": "Undo",
   "actionRequired": "Action Required",
+  "actionUndone": "Action undone",
   "incoming": "Incoming",
   "otherSettlements": "Other Settlements",
   "allSettledUp": "All settled up!",

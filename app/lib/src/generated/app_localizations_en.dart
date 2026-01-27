@@ -364,6 +364,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionRequired => 'Action Required';
 
   @override
+  String get actionUndone => 'Action undone';
+
+  @override
   String get incoming => 'Incoming';
 
   @override
