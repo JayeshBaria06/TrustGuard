@@ -3,74 +3,150 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
 import '../../../core/models/tag.dart';
+import '../../../core/models/tag_with_usage.dart';
 import '../../../ui/components/empty_state.dart';
+import '../../../core/utils/haptics.dart';
 
-class TagsScreen extends ConsumerWidget {
+class TagsScreen extends ConsumerStatefulWidget {
   final String groupId;
 
   const TagsScreen({super.key, required this.groupId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tagsWithUsageAsync = ref.watch(tagsWithUsageProvider(groupId));
+  ConsumerState<TagsScreen> createState() => _TagsScreenState();
+}
+
+class _TagsScreenState extends ConsumerState<TagsScreen> {
+  List<TagWithUsage>? _localTags;
+
+  Future<void> _onReorder(int oldIndex, int newIndex) async {
+    if (_localTags == null) return;
+
+    setState(() {
+      if (newIndex > oldIndex) newIndex -= 1;
+      final item = _localTags!.removeAt(oldIndex);
+      _localTags!.insert(newIndex, item);
+    });
+
+    HapticsService.lightTap();
+
+    final tagIds = _localTags!.map((t) => t.tag.id).toList();
+    try {
+      await ref
+          .read(tagRepositoryProvider)
+          .updateTagOrder(widget.groupId, tagIds);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating order: $e')));
+        // Re-invalidate to get correct order from DB
+        ref.invalidate(tagsWithUsageProvider(widget.groupId));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tagsWithUsageAsync = ref.watch(tagsWithUsageProvider(widget.groupId));
+
+    ref.listen(tagsWithUsageProvider(widget.groupId), (prev, next) {
+      next.whenData((tags) {
+        setState(() {
+          _localTags = List.from(tags);
+        });
+      });
+    });
+
+    // Initial population
+    if (_localTags == null && tagsWithUsageAsync.hasValue) {
+      _localTags = List.from(tagsWithUsageAsync.value!);
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Manage Tags')),
       body: tagsWithUsageAsync.when(
-        data: (tags) => tags.isEmpty
-            ? EmptyState(
-                svgPath: 'assets/illustrations/no_results.svg',
-                icon: Icons.label_off_outlined,
-                title: 'No tags',
-                message:
-                    'Create tags to categorize your expenses and transfers.',
-                actionLabel: 'Add Tag',
-                onActionPressed: () => _showTagDialog(context, ref),
-              )
-            : ListView.separated(
-                itemCount: tags.length,
-                separatorBuilder: (context, index) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final item = tags[index];
-                  return ListTile(
-                    leading: const Icon(Icons.label_outlined),
-                    title: Text(item.tag.name),
-                    subtitle: Text('${item.usageCount} transactions'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined),
-                          onPressed: () => _showTagDialog(
-                            context,
-                            ref,
-                            existingTag: item.tag,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.red,
-                          ),
-                          onPressed: () =>
-                              _confirmDelete(context, ref, item.tag),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+        data: (tags) {
+          final displayList = _localTags ?? tags;
+
+          if (displayList.isEmpty) {
+            return EmptyState(
+              svgPath: 'assets/illustrations/no_results.svg',
+              icon: Icons.label_off_outlined,
+              title: 'No tags',
+              message: 'Create tags to categorize your expenses and transfers.',
+              actionLabel: 'Add Tag',
+              onActionPressed: () => _showTagDialog(context),
+            );
+          }
+
+          final canReorder = displayList.length > 1;
+
+          if (canReorder) {
+            return ReorderableListView.builder(
+              onReorder: _onReorder,
+              buildDefaultDragHandles: false,
+              itemCount: displayList.length,
+              itemBuilder: (context, index) {
+                final item = displayList[index];
+                return _buildTagTile(item, index, canReorder: true);
+              },
+            );
+          }
+
+          return ListView.builder(
+            itemCount: displayList.length,
+            itemBuilder: (context, index) {
+              final item = displayList[index];
+              return _buildTagTile(item, index, canReorder: false);
+            },
+          );
+        },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showTagDialog(context, ref),
+        onPressed: () => _showTagDialog(context),
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  void _showTagDialog(BuildContext context, WidgetRef ref, {Tag? existingTag}) {
+  Widget _buildTagTile(
+    TagWithUsage item,
+    int index, {
+    required bool canReorder,
+  }) {
+    return ListTile(
+      key: ValueKey(item.tag.id),
+      leading: const Icon(Icons.label_outlined),
+      title: Text(item.tag.name),
+      subtitle: Text('${item.usageCount} transactions'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => _showTagDialog(context, existingTag: item.tag),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            onPressed: () => _confirmDelete(context, item.tag),
+          ),
+          if (canReorder)
+            ReorderableDragStartListener(
+              index: index,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: Icon(Icons.drag_handle, color: Colors.grey),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showTagDialog(BuildContext context, {Tag? existingTag}) {
     final nameController = TextEditingController(text: existingTag?.name ?? '');
     final isEditing = existingTag != null;
 
@@ -103,7 +179,11 @@ class TagsScreen extends ConsumerWidget {
                   await repo.updateTag(existingTag.copyWith(name: name));
                 } else {
                   await repo.createTag(
-                    Tag(id: const Uuid().v4(), groupId: groupId, name: name),
+                    Tag(
+                      id: const Uuid().v4(),
+                      groupId: widget.groupId,
+                      name: name,
+                    ),
                   );
                 }
                 if (context.mounted) Navigator.pop(context);
@@ -122,7 +202,7 @@ class TagsScreen extends ConsumerWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, WidgetRef ref, Tag tag) {
+  void _confirmDelete(BuildContext context, Tag tag) {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
