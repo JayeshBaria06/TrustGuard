@@ -160,7 +160,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       final txId = state.uri.queryParameters['txId'];
-                      return AddExpenseScreen(groupId: id, transactionId: txId);
+                      final scan = state.uri.queryParameters['scan'] == 'true';
+                      return AddExpenseScreen(
+                        groupId: id,
+                        transactionId: txId,
+                        initialScan: scan,
+                      );
                     },
                   ).withTransition(TransitionType.sharedAxisHorizontal),
                   GoRoute(

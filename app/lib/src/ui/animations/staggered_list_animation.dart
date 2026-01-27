@@ -9,6 +9,7 @@ class StaggeredListAnimationController {
   final Duration itemDuration;
 
   late final AnimationController controller;
+  bool _isDisposed = false;
 
   StaggeredListAnimationController({
     required this.vsync,
@@ -23,7 +24,9 @@ class StaggeredListAnimationController {
 
   /// Returns an animation for the item at the given [index].
   Animation<double> getAnimation(int index) {
-    if (controller.duration == null || controller.duration == Duration.zero) {
+    if (_isDisposed ||
+        controller.duration == null ||
+        controller.duration == Duration.zero) {
       return const AlwaysStoppedAnimation(1.0);
     }
 
@@ -46,16 +49,22 @@ class StaggeredListAnimationController {
 
   /// Starts the staggered animation sequence.
   void startAnimation() {
-    controller.forward();
+    if (!_isDisposed) {
+      controller.forward();
+    }
   }
 
   /// Resets the animation to the beginning.
   void reset() {
-    controller.reset();
+    if (!_isDisposed) {
+      controller.reset();
+    }
   }
 
   /// Disposes the underlying [AnimationController].
   void dispose() {
+    if (_isDisposed) return;
+    _isDisposed = true;
     controller.dispose();
   }
 }

@@ -5,6 +5,7 @@ import '../../../generated/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../core/models/reminder_settings.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../../ui/components/speed_dial_fab.dart';
 import 'groups_providers.dart';
 
 class GroupOverviewScreen extends ConsumerWidget {
@@ -21,6 +22,8 @@ class GroupOverviewScreen extends ConsumerWidget {
         if (group == null) {
           return const Scaffold(body: Center(child: Text('Group not found')));
         }
+
+        final l10n = AppLocalizations.of(context)!;
 
         return Scaffold(
           appBar: AppBar(
@@ -65,6 +68,30 @@ class GroupOverviewScreen extends ConsumerWidget {
                 _buildQuickActions(context, group),
               ],
             ),
+          ),
+          floatingActionButton: SpeedDialFab(
+            items: [
+              SpeedDialItem(
+                icon: Icons.receipt_long_outlined,
+                label: l10n.addExpense,
+                onPressed: () =>
+                    context.push('/group/${group.id}/transactions/add-expense'),
+              ),
+              SpeedDialItem(
+                icon: Icons.swap_horiz,
+                label: l10n.addTransfer,
+                onPressed: () => context.push(
+                  '/group/${group.id}/transactions/add-transfer',
+                ),
+              ),
+              SpeedDialItem(
+                icon: Icons.document_scanner_outlined,
+                label: l10n.scanReceipt,
+                onPressed: () => context.push(
+                  '/group/${group.id}/transactions/add-expense?scan=true',
+                ),
+              ),
+            ],
           ),
         );
       },

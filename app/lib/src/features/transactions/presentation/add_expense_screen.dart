@@ -27,11 +27,13 @@ import 'transactions_providers.dart';
 class AddExpenseScreen extends ConsumerStatefulWidget {
   final String groupId;
   final String? transactionId;
+  final bool initialScan;
 
   const AddExpenseScreen({
     super.key,
     required this.groupId,
     this.transactionId,
+    this.initialScan = false,
   });
 
   @override
@@ -65,6 +67,16 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   bool _isRepeatEnabled = false;
   RecurrenceFrequency _frequency = RecurrenceFrequency.weekly;
   DateTime? _endDate;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialScan) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scanReceipt();
+      });
+    }
+  }
 
   Future<void> _scanReceipt() async {
     final picker = ImagePicker();
