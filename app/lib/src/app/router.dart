@@ -24,6 +24,7 @@ import '../features/settings/presentation/debug_logs_screen.dart';
 import '../features/settings/presentation/help_screen.dart';
 import '../features/settings/providers/lock_providers.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
+import '../ui/animations/page_transitions.dart';
 import 'providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -64,8 +65,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
-      ),
-      GoRoute(path: '/lock', builder: (context, state) => const LockScreen()),
+      ).withTransition(TransitionType.fadeThrough),
+      GoRoute(
+        path: '/lock',
+        builder: (context, state) => const LockScreen(),
+      ).withTransition(TransitionType.fadeThrough),
       GoRoute(
         path: '/',
         builder: (context, state) => const HomeScreen(),
@@ -73,7 +77,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'group/create',
             builder: (context, state) => const GroupFormScreen(),
-          ),
+          ).withTransition(TransitionType.sharedAxisHorizontal),
           GoRoute(
             path: 'group/:id',
             builder: (context, state) {
@@ -87,63 +91,63 @@ final routerProvider = Provider<GoRouter>((ref) {
                   final id = state.pathParameters['id']!;
                   return GroupFormScreen(groupId: id);
                 },
-              ),
+              ).withTransition(TransitionType.sharedAxisHorizontal),
               GoRoute(
                 path: 'members',
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return MembersScreen(groupId: id);
                 },
-              ),
+              ).withTransition(TransitionType.sharedAxisHorizontal),
               GoRoute(
                 path: 'balances',
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return BalancesScreen(groupId: id);
                 },
-              ),
+              ).withTransition(TransitionType.sharedAxisHorizontal),
               GoRoute(
                 path: 'settlements',
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return SettlementsScreen(groupId: id);
                 },
-              ),
+              ).withTransition(TransitionType.sharedAxisHorizontal),
               GoRoute(
                 path: 'tags',
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return TagsScreen(groupId: id);
                 },
-              ),
+              ).withTransition(TransitionType.sharedAxisHorizontal),
               GoRoute(
                 path: 'analytics',
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return AnalyticsScreen(groupId: id);
                 },
-              ),
+              ).withTransition(TransitionType.sharedAxisHorizontal),
               GoRoute(
                 path: 'reminders',
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return ReminderSettingsScreen(groupId: id);
                 },
-              ),
+              ).withTransition(TransitionType.sharedAxisHorizontal),
               GoRoute(
                 path: 'export',
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return ExportScreen(groupId: id);
                 },
-              ),
+              ).withTransition(TransitionType.sharedAxisHorizontal),
               GoRoute(
                 path: 'import',
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return ImportScreen(groupId: id);
                 },
-              ),
+              ).withTransition(TransitionType.sharedAxisHorizontal),
               GoRoute(
                 path: 'transactions',
                 builder: (context, state) {
@@ -158,7 +162,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                       final txId = state.uri.queryParameters['txId'];
                       return AddExpenseScreen(groupId: id, transactionId: txId);
                     },
-                  ),
+                  ).withTransition(TransitionType.sharedAxisHorizontal),
                   GoRoute(
                     path: 'add-transfer',
                     builder: (context, state) {
@@ -177,7 +181,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                         initialNote: note,
                       );
                     },
-                  ),
+                  ).withTransition(TransitionType.sharedAxisHorizontal),
                   GoRoute(
                     path: ':txId',
                     builder: (context, state) {
@@ -188,13 +192,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                         transactionId: txId,
                       );
                     },
-                  ),
+                  ).withTransition(TransitionType.sharedAxisHorizontal),
                 ],
-              ),
+              ).withTransition(TransitionType.sharedAxisHorizontal),
             ],
-          ),
+          ).withTransition(TransitionType.sharedAxisHorizontal),
         ],
-      ),
+      ).withTransition(TransitionType.fadeThrough),
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
@@ -202,24 +206,42 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'pin-setup',
             builder: (context, state) => const PinSetupScreen(),
-          ),
+          ).withTransition(TransitionType.sharedAxisHorizontal),
           GoRoute(
             path: 'backup',
             builder: (context, state) => const BackupScreen(),
-          ),
+          ).withTransition(TransitionType.sharedAxisHorizontal),
           GoRoute(
             path: 'debug-logs',
             builder: (context, state) => const DebugLogsScreen(),
-          ),
+          ).withTransition(TransitionType.sharedAxisHorizontal),
           GoRoute(
             path: 'help',
             builder: (context, state) => const HelpScreen(),
-          ),
+          ).withTransition(TransitionType.sharedAxisHorizontal),
         ],
-      ),
+      ).withTransition(TransitionType.fadeThrough),
     ],
   );
 });
+
+extension GoRouteTransition on GoRoute {
+  GoRoute withTransition(TransitionType type) {
+    return GoRoute(
+      path: path,
+      name: name,
+      pageBuilder: (context, state) => AppPageTransitions.buildPage(
+        context: context,
+        key: state.pageKey,
+        type: type,
+        child: builder!(context, state),
+      ),
+      routes: routes,
+      redirect: redirect,
+      parentNavigatorKey: parentNavigatorKey,
+    );
+  }
+}
 
 class PlaceholderScreen extends StatelessWidget {
   final String title;
