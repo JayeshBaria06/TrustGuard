@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
 import '../../../app/app.dart';
+import '../../../core/services/keyboard_shortcut_service.dart';
 import '../../../core/models/expense.dart';
 import '../../../core/models/member.dart';
 import '../../../core/models/recurring_transaction.dart';
@@ -547,379 +548,402 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       });
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isEdit ? 'Edit Expense' : 'Add Expense'),
-        actions: [
-          if (!_isLoading) ...[
-            IconButton(
-              key: _scanButtonKey,
-              onPressed: _scanReceipt,
-              icon: const Icon(Icons.document_scanner),
-              tooltip: context.l10n.scanReceipt,
-            ),
-            ShakeWidget(
-              key: _appBarSaveKey,
-              child: IconButton(
-                onPressed: _save,
-                icon: const Icon(Icons.check),
-                tooltip: 'Save',
+    return Actions(
+      actions: {
+        SaveIntent: CallbackAction<SaveIntent>(
+          onInvoke: (intent) {
+            _save();
+            return null;
+          },
+        ),
+        CancelIntent: CallbackAction<CancelIntent>(
+          onInvoke: (intent) {
+            context.pop();
+            return null;
+          },
+        ),
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(isEdit ? 'Edit Expense' : 'Add Expense'),
+          actions: [
+            if (!_isLoading) ...[
+              IconButton(
+                key: _scanButtonKey,
+                onPressed: _scanReceipt,
+                icon: const Icon(Icons.document_scanner),
+                tooltip: context.l10n.scanReceipt,
               ),
-            ),
+              ShakeWidget(
+                key: _appBarSaveKey,
+                child: IconButton(
+                  onPressed: _save,
+                  icon: const Icon(Icons.check),
+                  tooltip: 'Save',
+                ),
+              ),
+            ],
           ],
-        ],
-      ),
-      body: membersAsync.when(
-        data: (members) {
-          if (members.isEmpty) {
-            return const Center(child: Text('Add members to the group first'));
-          }
-
-          if (!_isInitialized && !isEdit) {
-            // Default to first member as payer and all members as participants
-            _payerMemberId ??= members.first.id;
-            if (_selectedMemberIds.isEmpty) {
-              _selectedMemberIds.addAll(members.map((m) => m.id));
+        ),
+        body: membersAsync.when(
+          data: (members) {
+            if (members.isEmpty) {
+              return const Center(
+                child: Text('Add members to the group first'),
+              );
             }
-            _isInitialized = true;
-          }
 
-          return groupAsync.when(
-            data: (group) {
-              final currency = group?.currencyCode ?? 'USD';
-              return _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(AppTheme.space16),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (useCustomKeypad && !_isDifferentCurrency) ...[
-                              _buildAmountSuggestions(
-                                suggestionsAsync,
-                                currency,
-                              ),
-                              Card(
-                                margin: const EdgeInsets.only(
-                                  bottom: AppTheme.space24,
+            if (!_isInitialized && !isEdit) {
+              // Default to first member as payer and all members as participants
+              _payerMemberId ??= members.first.id;
+              if (_selectedMemberIds.isEmpty) {
+                _selectedMemberIds.addAll(members.map((m) => m.id));
+              }
+              _isInitialized = true;
+            }
+
+            return groupAsync.when(
+              data: (group) {
+                final currency = group?.currencyCode ?? 'USD';
+                return _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.all(AppTheme.space16),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (useCustomKeypad && !_isDifferentCurrency) ...[
+                                _buildAmountSuggestions(
+                                  suggestionsAsync,
+                                  currency,
                                 ),
-                                elevation: 0,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerLow,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child: AmountInputField(
-                                  key: ValueKey(
-                                    'amount_${_amountController.text}',
+                                Card(
+                                  margin: const EdgeInsets.only(
+                                    bottom: AppTheme.space24,
                                   ),
-                                  initialValue: MoneyUtils.toMinorUnits(
-                                    double.tryParse(_amountController.text) ??
-                                        0,
+                                  elevation: 0,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerLow,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
                                   ),
-                                  currencyCode: currency,
-                                  onChanged: (value) {
-                                    _amountController.text =
-                                        MoneyUtils.fromMinorUnits(
-                                          value,
-                                        ).toStringAsFixed(2);
-                                    setState(() {});
-                                  },
+                                  child: AmountInputField(
+                                    key: ValueKey(
+                                      'amount_${_amountController.text}',
+                                    ),
+                                    initialValue: MoneyUtils.toMinorUnits(
+                                      double.tryParse(_amountController.text) ??
+                                          0,
+                                    ),
+                                    currencyCode: currency,
+                                    onChanged: (value) {
+                                      _amountController.text =
+                                          MoneyUtils.fromMinorUnits(
+                                            value,
+                                          ).toStringAsFixed(2);
+                                      setState(() {});
+                                    },
+                                  ),
                                 ),
-                              ),
-                            ],
-                            _buildCurrencySection(currency),
-                            const SizedBox(height: AppTheme.space16),
-                            if (!useCustomKeypad || _isDifferentCurrency) ...[
-                              _buildAmountSuggestions(
-                                suggestionsAsync,
-                                currency,
-                              ),
+                              ],
+                              _buildCurrencySection(currency),
+                              const SizedBox(height: AppTheme.space16),
+                              if (!useCustomKeypad || _isDifferentCurrency) ...[
+                                _buildAmountSuggestions(
+                                  suggestionsAsync,
+                                  currency,
+                                ),
+                                Semantics(
+                                  label: 'Expense amount in $currency',
+                                  child: TextFormField(
+                                    controller: _amountController,
+                                    decoration: InputDecoration(
+                                      labelText: _isDifferentCurrency
+                                          ? 'Converted Amount ($currency)'
+                                          : 'Amount',
+                                      prefixText: '$currency ',
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    onChanged: (value) {
+                                      if (_isDifferentCurrency) {
+                                        _calculateOriginalAmount();
+                                      }
+                                    },
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter an amount';
+                                      }
+                                      if (double.tryParse(value) == null) {
+                                        return 'Please enter a valid number';
+                                      }
+                                      return null;
+                                    },
+                                    autofocus: !isEdit,
+                                  ),
+                                ),
+                                const SizedBox(height: AppTheme.space16),
+                              ],
                               Semantics(
-                                label: 'Expense amount in $currency',
+                                label: 'Expense note',
                                 child: TextFormField(
-                                  controller: _amountController,
-                                  decoration: InputDecoration(
-                                    labelText: _isDifferentCurrency
-                                        ? 'Converted Amount ($currency)'
-                                        : 'Amount',
-                                    prefixText: '$currency ',
-                                    border: const OutlineInputBorder(),
+                                  controller: _noteController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Note',
+                                    hintText: 'What was this for?',
+                                    border: OutlineInputBorder(),
                                   ),
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                        decimal: true,
-                                      ),
-                                  onChanged: (value) {
-                                    if (_isDifferentCurrency) {
-                                      _calculateOriginalAmount();
-                                    }
-                                  },
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter an amount';
-                                    }
-                                    if (double.tryParse(value) == null) {
-                                      return 'Please enter a valid number';
-                                    }
-                                    return null;
-                                  },
-                                  autofocus: !isEdit,
+                                  textCapitalization:
+                                      TextCapitalization.sentences,
                                 ),
                               ),
                               const SizedBox(height: AppTheme.space16),
-                            ],
-                            Semantics(
-                              label: 'Expense note',
-                              child: TextFormField(
-                                controller: _noteController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Note',
-                                  hintText: 'What was this for?',
-                                  border: OutlineInputBorder(),
-                                ),
-                                textCapitalization:
-                                    TextCapitalization.sentences,
-                              ),
-                            ),
-                            const SizedBox(height: AppTheme.space16),
-                            Semantics(
-                              label: 'Expense date',
-                              button: true,
-                              child: ListTile(
-                                title: const Text('Date'),
-                                subtitle: Text(
-                                  DateFormat.yMMMd().format(_occurredAt),
-                                ),
-                                trailing: const Icon(Icons.calendar_today),
-                                onTap: () => _selectDate(context),
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                    color: Theme.of(context).dividerColor,
+                              Semantics(
+                                label: 'Expense date',
+                                button: true,
+                                child: ListTile(
+                                  title: const Text('Date'),
+                                  subtitle: Text(
+                                    DateFormat.yMMMd().format(_occurredAt),
                                   ),
-                                  borderRadius: BorderRadius.circular(4),
+                                  trailing: const Icon(Icons.calendar_today),
+                                  onTap: () => _selectDate(context),
+                                  shape: RoundedRectangleBorder(
+                                    side: BorderSide(
+                                      color: Theme.of(context).dividerColor,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
                                 ),
                               ),
-                            ),
 
-                            const SizedBox(height: AppTheme.space16),
-                            _buildRepeatSection(),
+                              const SizedBox(height: AppTheme.space16),
+                              _buildRepeatSection(),
 
-                            const SizedBox(height: AppTheme.space16),
+                              const SizedBox(height: AppTheme.space16),
 
-                            _buildTagsSection(),
-                            const SizedBox(height: AppTheme.space24),
-                            MemberAvatarSelector(
-                              label: context.l10n.paidBy,
-                              members: members,
-                              selectedIds: _payerMemberId != null
-                                  ? {_payerMemberId!}
-                                  : {},
-                              onSelectionChanged: (ids) {
-                                if (ids.isNotEmpty) {
-                                  setState(() => _payerMemberId = ids.first);
-                                }
-                              },
-                              allowMultiple: false,
-                            ),
-                            const SizedBox(height: AppTheme.space24),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
+                              _buildTagsSection(),
+                              const SizedBox(height: AppTheme.space24),
+                              MemberAvatarSelector(
+                                label: context.l10n.paidBy,
+                                members: members,
+                                selectedIds: _payerMemberId != null
+                                    ? {_payerMemberId!}
+                                    : {},
+                                onSelectionChanged: (ids) {
+                                  if (ids.isNotEmpty) {
+                                    setState(() => _payerMemberId = ids.first);
+                                  }
+                                },
+                                allowMultiple: false,
+                              ),
+                              const SizedBox(height: AppTheme.space24),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppTheme.space16,
+                                    ),
+                                    child: Text(
+                                      context.l10n.splitBetween,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelLarge
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                  ),
+                                  DropdownButton<SplitType>(
+                                    value: _splitType,
+                                    underline: const SizedBox(),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppTheme.space16,
+                                    ),
+                                    items: [
+                                      DropdownMenuItem(
+                                        value: SplitType.equal,
+                                        child: Text(context.l10n.splitEqually),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: SplitType.custom,
+                                        child: Text(context.l10n.splitCustomly),
+                                      ),
+                                    ],
+                                    onChanged: (value) {
+                                      if (value != null) {
+                                        setState(() {
+                                          _splitType = value;
+                                          if (_splitType == SplitType.custom) {
+                                            // Initialize custom controllers if needed
+                                            for (var id in _selectedMemberIds) {
+                                              _customAmountControllers
+                                                  .putIfAbsent(
+                                                    id,
+                                                    () =>
+                                                        TextEditingController(),
+                                                  );
+                                            }
+                                          }
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: AppTheme.space8),
+                              MemberAvatarSelector(
+                                members: members,
+                                selectedIds: _selectedMemberIds,
+                                onSelectionChanged: (ids) {
+                                  setState(() {
+                                    _selectedMemberIds.clear();
+                                    _selectedMemberIds.addAll(ids);
+                                    if (_splitType == SplitType.custom) {
+                                      for (var id in _selectedMemberIds) {
+                                        _customAmountControllers.putIfAbsent(
+                                          id,
+                                          () => TextEditingController(),
+                                        );
+                                      }
+                                      _customAmountControllers.removeWhere(
+                                        (id, _) =>
+                                            !_selectedMemberIds.contains(id),
+                                      );
+                                    }
+                                  });
+                                },
+                                allowMultiple: true,
+                              ),
+                              if (_splitType == SplitType.custom &&
+                                  _selectedMemberIds.isNotEmpty) ...[
+                                const SizedBox(height: AppTheme.space16),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: AppTheme.space16,
                                   ),
-                                  child: Text(
-                                    context.l10n.splitBetween,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelLarge
-                                        ?.copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                          fontWeight: FontWeight.bold,
+                                  child: Column(
+                                    children: _selectedMemberIds.map((id) {
+                                      final member = members.firstWhere(
+                                        (m) => m.id == id,
+                                      );
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: AppTheme.space12,
                                         ),
+                                        child: Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 16,
+                                              backgroundColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .surfaceContainerHighest,
+                                              child: Text(
+                                                _getInitials(
+                                                  member.displayName,
+                                                ),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                              width: AppTheme.space12,
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                member.displayName,
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.bodyMedium,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              width: 120,
+                                              child: TextFormField(
+                                                controller:
+                                                    _customAmountControllers[id],
+                                                decoration: InputDecoration(
+                                                  labelText: 'Amount',
+                                                  prefixText: '$currency ',
+                                                  isDense: true,
+                                                  border:
+                                                      const OutlineInputBorder(),
+                                                ),
+                                                keyboardType:
+                                                    const TextInputType.numberWithOptions(
+                                                      decimal: true,
+                                                    ),
+                                                onChanged: (_) =>
+                                                    setState(() {}),
+                                                validator: (value) {
+                                                  if (value == null ||
+                                                      value.isEmpty) {
+                                                    return 'Required';
+                                                  }
+                                                  if (double.tryParse(value) ==
+                                                      null) {
+                                                    return 'Invalid';
+                                                  }
+                                                  return null;
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
                                   ),
-                                ),
-                                DropdownButton<SplitType>(
-                                  value: _splitType,
-                                  underline: const SizedBox(),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppTheme.space16,
-                                  ),
-                                  items: [
-                                    DropdownMenuItem(
-                                      value: SplitType.equal,
-                                      child: Text(context.l10n.splitEqually),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: SplitType.custom,
-                                      child: Text(context.l10n.splitCustomly),
-                                    ),
-                                  ],
-                                  onChanged: (value) {
-                                    if (value != null) {
-                                      setState(() {
-                                        _splitType = value;
-                                        if (_splitType == SplitType.custom) {
-                                          // Initialize custom controllers if needed
-                                          for (var id in _selectedMemberIds) {
-                                            _customAmountControllers
-                                                .putIfAbsent(
-                                                  id,
-                                                  () => TextEditingController(),
-                                                );
-                                          }
-                                        }
-                                      });
-                                    }
-                                  },
                                 ),
                               ],
-                            ),
-                            const SizedBox(height: AppTheme.space8),
-                            MemberAvatarSelector(
-                              members: members,
-                              selectedIds: _selectedMemberIds,
-                              onSelectionChanged: (ids) {
-                                setState(() {
-                                  _selectedMemberIds.clear();
-                                  _selectedMemberIds.addAll(ids);
-                                  if (_splitType == SplitType.custom) {
-                                    for (var id in _selectedMemberIds) {
-                                      _customAmountControllers.putIfAbsent(
-                                        id,
-                                        () => TextEditingController(),
-                                      );
-                                    }
-                                    _customAmountControllers.removeWhere(
-                                      (id, _) =>
-                                          !_selectedMemberIds.contains(id),
-                                    );
-                                  }
-                                });
-                              },
-                              allowMultiple: true,
-                            ),
-                            if (_splitType == SplitType.custom &&
-                                _selectedMemberIds.isNotEmpty) ...[
-                              const SizedBox(height: AppTheme.space16),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppTheme.space16,
+                              if (_selectedMemberIds.isNotEmpty) ...[
+                                const SizedBox(height: AppTheme.space16),
+                                ShakeWidget(
+                                  key: _splitPreviewKey,
+                                  child: _buildSplitPreview(currency, members),
                                 ),
-                                child: Column(
-                                  children: _selectedMemberIds.map((id) {
-                                    final member = members.firstWhere(
-                                      (m) => m.id == id,
-                                    );
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        bottom: AppTheme.space12,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          CircleAvatar(
-                                            radius: 16,
-                                            backgroundColor: Theme.of(context)
-                                                .colorScheme
-                                                .surfaceContainerHighest,
-                                            child: Text(
-                                              _getInitials(member.displayName),
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurfaceVariant,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            width: AppTheme.space12,
-                                          ),
-                                          Expanded(
-                                            child: Text(
-                                              member.displayName,
-                                              style: Theme.of(
-                                                context,
-                                              ).textTheme.bodyMedium,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: 120,
-                                            child: TextFormField(
-                                              controller:
-                                                  _customAmountControllers[id],
-                                              decoration: InputDecoration(
-                                                labelText: 'Amount',
-                                                prefixText: '$currency ',
-                                                isDense: true,
-                                                border:
-                                                    const OutlineInputBorder(),
-                                              ),
-                                              keyboardType:
-                                                  const TextInputType.numberWithOptions(
-                                                    decimal: true,
-                                                  ),
-                                              onChanged: (_) => setState(() {}),
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return 'Required';
-                                                }
-                                                if (double.tryParse(value) ==
-                                                    null) {
-                                                  return 'Invalid';
-                                                }
-                                                return null;
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ],
-                            if (_selectedMemberIds.isNotEmpty) ...[
-                              const SizedBox(height: AppTheme.space16),
+                              ],
+                              const SizedBox(height: AppTheme.space32),
                               ShakeWidget(
-                                key: _splitPreviewKey,
-                                child: _buildSplitPreview(currency, members),
-                              ),
-                            ],
-                            const SizedBox(height: AppTheme.space32),
-                            ShakeWidget(
-                              key: _saveButtonKey,
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _save,
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
+                                key: _saveButtonKey,
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _save,
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    isEdit ? 'Update Expense' : 'Add Expense',
                                   ),
                                 ),
-                                child: Text(
-                                  isEdit ? 'Update Expense' : 'Add Expense',
-                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, s) => Center(child: Text('Error loading group: $e')),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error loading members: $e')),
+                      );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, s) => Center(child: Text('Error loading group: $e')),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, s) => Center(child: Text('Error loading members: $e')),
+        ),
       ),
     );
   }

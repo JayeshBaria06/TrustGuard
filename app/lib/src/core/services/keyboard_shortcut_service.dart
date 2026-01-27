@@ -44,6 +44,7 @@ class KeyboardShortcutService {
   static Map<ShortcutActivator, Intent> get defaultShortcuts {
     return {
       platformShortcut(LogicalKeyboardKey.keyN): const NewExpenseIntent(),
+      platformShortcut(LogicalKeyboardKey.keyT): const NewTransferIntent(),
       platformShortcut(LogicalKeyboardKey.keyS): const SaveIntent(),
       platformShortcut(LogicalKeyboardKey.keyF): const SearchIntent(),
       const SingleActivator(LogicalKeyboardKey.escape): const CancelIntent(),

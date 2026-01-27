@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
 import '../../../app/app.dart';
+import '../../../core/services/keyboard_shortcut_service.dart';
 import '../../../core/models/transfer.dart';
 import '../../../core/models/recurring_transaction.dart';
 import '../../../core/models/tag.dart';
@@ -393,234 +394,253 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
       });
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isEdit ? 'Edit Transfer' : 'Add Transfer'),
-        actions: [
-          if (!_isLoading)
-            ShakeWidget(
-              key: _appBarSaveKey,
-              child: IconButton(
-                onPressed: _save,
-                icon: const Icon(Icons.check),
-                tooltip: 'Save',
+    return Actions(
+      actions: {
+        SaveIntent: CallbackAction<SaveIntent>(
+          onInvoke: (intent) {
+            _save();
+            return null;
+          },
+        ),
+        CancelIntent: CallbackAction<CancelIntent>(
+          onInvoke: (intent) {
+            context.pop();
+            return null;
+          },
+        ),
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(isEdit ? 'Edit Transfer' : 'Add Transfer'),
+          actions: [
+            if (!_isLoading)
+              ShakeWidget(
+                key: _appBarSaveKey,
+                child: IconButton(
+                  onPressed: _save,
+                  icon: const Icon(Icons.check),
+                  tooltip: 'Save',
+                ),
               ),
-            ),
-        ],
-      ),
-      body: membersAsync.when(
-        data: (members) {
-          if (members.length < 2) {
-            return const Center(
-              child: Text('Add at least two members to the group first'),
-            );
-          }
-
-          if (!_isInitialized && !isEdit) {
-            _fromMemberId =
-                widget.initialFromId ??
-                (members.isNotEmpty ? members[0].id : null);
-            _toMemberId =
-                widget.initialToId ??
-                (members.length > 1 ? members[1].id : null);
-            if (widget.initialAmount != null) {
-              _amountController.text = widget.initialAmount!;
+          ],
+        ),
+        body: membersAsync.when(
+          data: (members) {
+            if (members.length < 2) {
+              return const Center(
+                child: Text('Add at least two members to the group first'),
+              );
             }
-            if (widget.initialNote != null) {
-              _noteController.text = widget.initialNote!;
-            }
-            _isInitialized = true;
-          }
 
-          return groupAsync.when(
-            data: (group) {
-              final currency = group?.currencyCode ?? 'USD';
-              return _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(AppTheme.space16),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildAmountSuggestions(suggestionsAsync, currency),
-                            if (useCustomKeypad) ...[
-                              Card(
-                                margin: const EdgeInsets.only(
-                                  bottom: AppTheme.space24,
-                                ),
-                                elevation: 0,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerLow,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child: AmountInputField(
-                                  key: ValueKey(
-                                    'amount_${_amountController.text}',
-                                  ),
-                                  initialValue: MoneyUtils.toMinorUnits(
-                                    double.tryParse(_amountController.text) ??
-                                        0,
-                                  ),
-                                  currencyCode: currency,
-                                  onChanged: (value) {
-                                    _amountController.text =
-                                        MoneyUtils.fromMinorUnits(
-                                          value,
-                                        ).toStringAsFixed(2);
-                                    setState(() {});
-                                  },
-                                ),
+            if (!_isInitialized && !isEdit) {
+              _fromMemberId =
+                  widget.initialFromId ??
+                  (members.isNotEmpty ? members[0].id : null);
+              _toMemberId =
+                  widget.initialToId ??
+                  (members.length > 1 ? members[1].id : null);
+              if (widget.initialAmount != null) {
+                _amountController.text = widget.initialAmount!;
+              }
+              if (widget.initialNote != null) {
+                _noteController.text = widget.initialNote!;
+              }
+              _isInitialized = true;
+            }
+
+            return groupAsync.when(
+              data: (group) {
+                final currency = group?.currencyCode ?? 'USD';
+                return _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.all(AppTheme.space16),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildAmountSuggestions(
+                                suggestionsAsync,
+                                currency,
                               ),
-                            ],
-                            if (!useCustomKeypad) ...[
+                              if (useCustomKeypad) ...[
+                                Card(
+                                  margin: const EdgeInsets.only(
+                                    bottom: AppTheme.space24,
+                                  ),
+                                  elevation: 0,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerLow,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: AmountInputField(
+                                    key: ValueKey(
+                                      'amount_${_amountController.text}',
+                                    ),
+                                    initialValue: MoneyUtils.toMinorUnits(
+                                      double.tryParse(_amountController.text) ??
+                                          0,
+                                    ),
+                                    currencyCode: currency,
+                                    onChanged: (value) {
+                                      _amountController.text =
+                                          MoneyUtils.fromMinorUnits(
+                                            value,
+                                          ).toStringAsFixed(2);
+                                      setState(() {});
+                                    },
+                                  ),
+                                ),
+                              ],
+                              if (!useCustomKeypad) ...[
+                                Semantics(
+                                  label: 'Transfer amount in $currency',
+                                  child: TextFormField(
+                                    controller: _amountController,
+                                    decoration: InputDecoration(
+                                      labelText: 'Amount',
+                                      prefixText: '$currency ',
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter an amount';
+                                      }
+                                      if (double.tryParse(value) == null) {
+                                        return 'Please enter a valid number';
+                                      }
+                                      return null;
+                                    },
+                                    autofocus: !isEdit,
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: AppTheme.space16),
                               Semantics(
-                                label: 'Transfer amount in $currency',
+                                label: 'Transfer note',
                                 child: TextFormField(
-                                  controller: _amountController,
-                                  decoration: InputDecoration(
-                                    labelText: 'Amount',
-                                    prefixText: '$currency ',
-                                    border: const OutlineInputBorder(),
+                                  controller: _noteController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Note',
+                                    hintText: 'e.g. Settlement',
+                                    border: OutlineInputBorder(),
                                   ),
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                        decimal: true,
-                                      ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter an amount';
-                                    }
-                                    if (double.tryParse(value) == null) {
-                                      return 'Please enter a valid number';
-                                    }
-                                    return null;
-                                  },
-                                  autofocus: !isEdit,
+                                  textCapitalization:
+                                      TextCapitalization.sentences,
+                                ),
+                              ),
+                              const SizedBox(height: AppTheme.space16),
+                              Semantics(
+                                label: 'Transfer date',
+                                button: true,
+                                child: ListTile(
+                                  title: const Text('Date'),
+                                  subtitle: Text(
+                                    DateFormat.yMMMd().format(_occurredAt),
+                                  ),
+                                  trailing: const Icon(Icons.calendar_today),
+                                  onTap: () => _selectDate(context),
+                                  shape: RoundedRectangleBorder(
+                                    side: BorderSide(
+                                      color: Theme.of(context).dividerColor,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: AppTheme.space16),
+                              _buildRepeatSection(),
+
+                              const SizedBox(height: AppTheme.space16),
+
+                              _buildTagsSection(),
+                              const SizedBox(height: AppTheme.space24),
+                              Text(
+                                'From',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: AppTheme.space8),
+                              DropdownButtonFormField<String>(
+                                initialValue: _fromMemberId,
+                                items: members.map((m) {
+                                  return DropdownMenuItem(
+                                    value: m.id,
+                                    child: Text(m.displayName),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() => _fromMemberId = value);
+                                  }
+                                },
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: AppTheme.space16),
+                              Text(
+                                'To',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: AppTheme.space8),
+                              DropdownButtonFormField<String>(
+                                initialValue: _toMemberId,
+                                items: members.map((m) {
+                                  return DropdownMenuItem(
+                                    value: m.id,
+                                    child: Text(m.displayName),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() => _toMemberId = value);
+                                  }
+                                },
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: AppTheme.space32),
+                              ShakeWidget(
+                                key: _saveButtonKey,
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _save,
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    isEdit ? 'Update Transfer' : 'Add Transfer',
+                                  ),
                                 ),
                               ),
                             ],
-                            const SizedBox(height: AppTheme.space16),
-                            Semantics(
-                              label: 'Transfer note',
-                              child: TextFormField(
-                                controller: _noteController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Note',
-                                  hintText: 'e.g. Settlement',
-                                  border: OutlineInputBorder(),
-                                ),
-                                textCapitalization:
-                                    TextCapitalization.sentences,
-                              ),
-                            ),
-                            const SizedBox(height: AppTheme.space16),
-                            Semantics(
-                              label: 'Transfer date',
-                              button: true,
-                              child: ListTile(
-                                title: const Text('Date'),
-                                subtitle: Text(
-                                  DateFormat.yMMMd().format(_occurredAt),
-                                ),
-                                trailing: const Icon(Icons.calendar_today),
-                                onTap: () => _selectDate(context),
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                    color: Theme.of(context).dividerColor,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: AppTheme.space16),
-                            _buildRepeatSection(),
-
-                            const SizedBox(height: AppTheme.space16),
-
-                            _buildTagsSection(),
-                            const SizedBox(height: AppTheme.space24),
-                            Text(
-                              'From',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: AppTheme.space8),
-                            DropdownButtonFormField<String>(
-                              initialValue: _fromMemberId,
-                              items: members.map((m) {
-                                return DropdownMenuItem(
-                                  value: m.id,
-                                  child: Text(m.displayName),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() => _fromMemberId = value);
-                                }
-                              },
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: AppTheme.space16),
-                            Text(
-                              'To',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: AppTheme.space8),
-                            DropdownButtonFormField<String>(
-                              initialValue: _toMemberId,
-                              items: members.map((m) {
-                                return DropdownMenuItem(
-                                  value: m.id,
-                                  child: Text(m.displayName),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() => _toMemberId = value);
-                                }
-                              },
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: AppTheme.space32),
-                            ShakeWidget(
-                              key: _saveButtonKey,
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _save,
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                ),
-                                child: Text(
-                                  isEdit ? 'Update Transfer' : 'Add Transfer',
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, s) => Center(child: Text('Error loading group: $e')),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error loading members: $e')),
+                      );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, s) => Center(child: Text('Error loading group: $e')),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, s) => Center(child: Text('Error loading members: $e')),
+        ),
       ),
     );
   }

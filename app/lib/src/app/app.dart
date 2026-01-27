@@ -5,6 +5,7 @@ import '../ui/theme/app_theme.dart';
 import '../features/settings/providers/lock_providers.dart';
 import '../features/settings/providers/theme_providers.dart';
 import '../features/reminders/services/reminder_service.dart';
+import '../core/services/keyboard_shortcut_service.dart';
 
 import 'providers.dart';
 import 'router.dart';
@@ -74,16 +75,28 @@ class _TrustGuardAppState extends ConsumerState<TrustGuardApp>
     final themeState = ref.watch(themeStateProvider);
     final themeService = ref.watch(themeServiceProvider);
 
-    return MaterialApp.router(
-      title: 'TrustGuard',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeService.toFlutterThemeMode(themeState.currentMode),
-      routerConfig: router,
-
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+    return AppShortcuts(
+      actions: {
+        CancelIntent: CallbackAction<CancelIntent>(
+          onInvoke: (intent) {
+            final navigator = Navigator.of(context, rootNavigator: true);
+            if (navigator.canPop()) {
+              navigator.pop();
+            }
+            return null;
+          },
+        ),
+      },
+      child: MaterialApp.router(
+        title: 'TrustGuard',
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: themeService.toFlutterThemeMode(themeState.currentMode),
+        routerConfig: router,
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      ),
     );
   }
 }

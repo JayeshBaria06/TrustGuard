@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../app/providers.dart';
 import '../../../app/app.dart';
+import '../../../core/services/keyboard_shortcut_service.dart';
 import '../../../core/models/member.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
@@ -48,6 +49,7 @@ class TransactionListScreen extends ConsumerStatefulWidget {
 class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
     with SingleTickerProviderStateMixin {
   late final ScrollController _scrollController;
+  late final FocusNode _searchFocusNode;
   StaggeredListAnimationController? _animationController;
   int _lastAnimatedIndex = -1;
   final _firstTransactionKey = GlobalKey();
@@ -57,11 +59,13 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
+    _searchFocusNode = FocusNode();
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchFocusNode.dispose();
     _animationController?.dispose();
     super.dispose();
   }
@@ -146,254 +150,283 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.transactionsTitle),
-        actions: [
-          IconButton(
-            icon: AnimatedFilterBadge(
-              isActive: !filter.isEmpty,
-              child: const Icon(Icons.filter_list),
+    return Actions(
+      actions: {
+        SearchIntent: CallbackAction<SearchIntent>(
+          onInvoke: (intent) {
+            _searchFocusNode.requestFocus();
+            return null;
+          },
+        ),
+        NewExpenseIntent: CallbackAction<NewExpenseIntent>(
+          onInvoke: (intent) {
+            context.push('/group/${widget.groupId}/transactions/add-expense');
+            return null;
+          },
+        ),
+        NewTransferIntent: CallbackAction<NewTransferIntent>(
+          onInvoke: (intent) {
+            context.push('/group/${widget.groupId}/transactions/add-transfer');
+            return null;
+          },
+        ),
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(context.l10n.transactionsTitle),
+          actions: [
+            IconButton(
+              icon: AnimatedFilterBadge(
+                isActive: !filter.isEmpty,
+                child: const Icon(Icons.filter_list),
+              ),
+              onPressed: () {
+                showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  builder: (context) =>
+                      TransactionFilterSheet(groupId: widget.groupId),
+                );
+              },
+              tooltip: context.l10n.filterTransactions,
             ),
-            onPressed: () {
-              showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                useSafeArea: true,
-                builder: (context) =>
-                    TransactionFilterSheet(groupId: widget.groupId),
-              );
-            },
-            tooltip: context.l10n.filterTransactions,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.space8),
-            child: Semantics(
-              label: 'Search transactions by note',
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: context.l10n.searchNote,
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: filter.searchQuery?.isNotEmpty ?? false
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            ref
+          ],
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppTheme.space8),
+              child: Semantics(
+                label: 'Search transactions by note',
+                child: TextField(
+                  focusNode: _searchFocusNode,
+                  decoration: InputDecoration(
+                    hintText: context.l10n.searchNote,
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: filter.searchQuery?.isNotEmpty ?? false
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              ref
+                                  .read(
+                                    transactionFilterProvider(
+                                      widget.groupId,
+                                    ).notifier,
+                                  )
+                                  .state = filter.copyWith(
+                                searchQuery: '',
+                              );
+                            },
+                            tooltip: context.l10n.clearSearch,
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  onChanged: (value) {
+                    ref
+                        .read(
+                          transactionFilterProvider(widget.groupId).notifier,
+                        )
+                        .state = filter.copyWith(
+                      searchQuery: value,
+                    );
+                  },
+                ),
+              ),
+            ),
+            if (!filter.isEmpty) _ActiveFilterChips(groupId: widget.groupId),
+            Expanded(
+              child: transactionsAsync.when(
+                data: (paginatedState) {
+                  final transactions = paginatedState.transactions;
+                  if (transactions.isEmpty) {
+                    return filter.isEmpty
+                        ? EmptyState(
+                            lottiePath: LottieAssets.emptyList,
+                            svgPath: 'assets/illustrations/no_transactions.svg',
+                            icon: Icons.receipt_long_outlined,
+                            title: context.l10n.noTransactionsYet,
+                            message: context.l10n.noTransactionsMessage,
+                            actionLabel: context.l10n.addExpense,
+                            onActionPressed: () => context.push(
+                              '/group/${widget.groupId}/transactions/add-expense',
+                            ),
+                          )
+                        : EmptyState(
+                            svgPath: 'assets/illustrations/no_results.svg',
+                            icon: Icons.search_off,
+                            title: context.l10n.noResultsFound,
+                            message: context.l10n.tryAdjustingFilters,
+                            actionLabel: context.l10n.clearAllFilters,
+                            onActionPressed: () {
+                              ref
+                                      .read(
+                                        transactionFilterProvider(
+                                          widget.groupId,
+                                        ).notifier,
+                                      )
+                                      .state =
+                                  const TransactionFilter();
+                            },
+                          );
+                  }
+
+                  return membersAsync.when(
+                    data: (members) {
+                      final memberMap = {
+                        for (var m in members) m.id: m.displayName,
+                      };
+
+                      return groupAsync.when(
+                        data: (group) {
+                          final currencyCode = group?.currencyCode ?? 'USD';
+                          final grouped = groupTransactionsByDate(transactions);
+
+                          // Pre-calculate global indices for staggered animation
+                          final txToIndex = <String, int>{};
+                          int currentGlobalIndex = 0;
+                          for (final entry in grouped.entries) {
+                            for (final tx in entry.value) {
+                              txToIndex[tx.id] = currentGlobalIndex++;
+                            }
+                          }
+
+                          return RefreshIndicator(
+                            onRefresh: () => ref
                                 .read(
-                                  transactionFilterProvider(
+                                  paginatedTransactionsProvider(
                                     widget.groupId,
                                   ).notifier,
                                 )
-                                .state = filter.copyWith(
-                              searchQuery: '',
-                            );
-                          },
-                          tooltip: context.l10n.clearSearch,
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                ),
-                onChanged: (value) {
-                  ref
-                      .read(transactionFilterProvider(widget.groupId).notifier)
-                      .state = filter.copyWith(
-                    searchQuery: value,
-                  );
-                },
-              ),
-            ),
-          ),
-
-          if (!filter.isEmpty) _ActiveFilterChips(groupId: widget.groupId),
-          Expanded(
-            child: transactionsAsync.when(
-              data: (paginatedState) {
-                final transactions = paginatedState.transactions;
-                if (transactions.isEmpty) {
-                  return filter.isEmpty
-                      ? EmptyState(
-                          lottiePath: LottieAssets.emptyList,
-                          svgPath: 'assets/illustrations/no_transactions.svg',
-                          icon: Icons.receipt_long_outlined,
-                          title: context.l10n.noTransactionsYet,
-                          message: context.l10n.noTransactionsMessage,
-                          actionLabel: context.l10n.addExpense,
-                          onActionPressed: () => context.push(
-                            '/group/${widget.groupId}/transactions/add-expense',
-                          ),
-                        )
-                      : EmptyState(
-                          svgPath: 'assets/illustrations/no_results.svg',
-                          icon: Icons.search_off,
-                          title: context.l10n.noResultsFound,
-                          message: context.l10n.tryAdjustingFilters,
-                          actionLabel: context.l10n.clearAllFilters,
-                          onActionPressed: () {
-                            ref
-                                    .read(
-                                      transactionFilterProvider(
-                                        widget.groupId,
-                                      ).notifier,
-                                    )
-                                    .state =
-                                const TransactionFilter();
-                          },
-                        );
-                }
-
-                return membersAsync.when(
-                  data: (members) {
-                    final memberMap = {
-                      for (var m in members) m.id: m.displayName,
-                    };
-
-                    return groupAsync.when(
-                      data: (group) {
-                        final currencyCode = group?.currencyCode ?? 'USD';
-                        final grouped = groupTransactionsByDate(transactions);
-
-                        // Pre-calculate global indices for staggered animation
-                        final txToIndex = <String, int>{};
-                        int currentGlobalIndex = 0;
-                        for (final entry in grouped.entries) {
-                          for (final tx in entry.value) {
-                            txToIndex[tx.id] = currentGlobalIndex++;
-                          }
-                        }
-
-                        return RefreshIndicator(
-                          onRefresh: () => ref
-                              .read(
-                                paginatedTransactionsProvider(
-                                  widget.groupId,
-                                ).notifier,
-                              )
-                              .refresh(),
-                          child: CustomScrollView(
-                            controller: _scrollController,
-                            key: const PageStorageKey('transaction_list'),
-                            slivers: [
-                              const SliverToBoxAdapter(
-                                child: SizedBox(height: AppTheme.space8),
-                              ),
-                              for (final entry in grouped.entries) ...[
-                                SliverPersistentHeader(
-                                  pinned: true,
-                                  delegate: _DateHeaderDelegate(
-                                    date: entry.key,
-                                  ),
-                                ),
-                                SliverPadding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppTheme.space8,
-                                  ),
-                                  sliver: SliverList(
-                                    delegate: SliverChildBuilderDelegate((
-                                      context,
-                                      index,
-                                    ) {
-                                      final tx = entry.value[index];
-                                      final globalIndex = txToIndex[tx.id] ?? 0;
-
-                                      final item = Column(
-                                        children: [
-                                          _TransactionListItem(
-                                            key: globalIndex == 0
-                                                ? _firstTransactionKey
-                                                : ValueKey(tx.id),
-                                            transaction: tx,
-                                            memberMap: memberMap,
-                                            currencyCode: currencyCode,
-                                          ),
-                                          if (index < entry.value.length - 1)
-                                            const Divider(),
-                                        ],
-                                      );
-
-                                      // Only wrap in StaggeredListItem if it's within the animated range
-                                      // and we have a controller.
-                                      if (_animationController != null &&
-                                          globalIndex <
-                                              _animationController!.itemCount) {
-                                        return StaggeredListItem(
-                                          animation: _animationController!
-                                              .getAnimation(globalIndex),
-                                          child: item,
-                                        );
-                                      }
-
-                                      return item;
-                                    }, childCount: entry.value.length),
-                                  ),
-                                ),
-                              ],
-                              if (paginatedState.hasMore)
+                                .refresh(),
+                            child: CustomScrollView(
+                              controller: _scrollController,
+                              key: const PageStorageKey('transaction_list'),
+                              slivers: [
                                 const SliverToBoxAdapter(
-                                  child: Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(AppTheme.space16),
-                                      child: CircularProgressIndicator(),
+                                  child: SizedBox(height: AppTheme.space8),
+                                ),
+                                for (final entry in grouped.entries) ...[
+                                  SliverPersistentHeader(
+                                    pinned: true,
+                                    delegate: _DateHeaderDelegate(
+                                      date: entry.key,
                                     ),
                                   ),
+                                  SliverPadding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppTheme.space8,
+                                    ),
+                                    sliver: SliverList(
+                                      delegate: SliverChildBuilderDelegate((
+                                        context,
+                                        index,
+                                      ) {
+                                        final tx = entry.value[index];
+                                        final globalIndex =
+                                            txToIndex[tx.id] ?? 0;
+
+                                        final item = Column(
+                                          children: [
+                                            _TransactionListItem(
+                                              key: globalIndex == 0
+                                                  ? _firstTransactionKey
+                                                  : ValueKey(tx.id),
+                                              transaction: tx,
+                                              memberMap: memberMap,
+                                              currencyCode: currencyCode,
+                                            ),
+                                            if (index < entry.value.length - 1)
+                                              const Divider(),
+                                          ],
+                                        );
+
+                                        // Only wrap in StaggeredListItem if it's within the animated range
+                                        // and we have a controller.
+                                        if (_animationController != null &&
+                                            globalIndex <
+                                                _animationController!
+                                                    .itemCount) {
+                                          return StaggeredListItem(
+                                            animation: _animationController!
+                                                .getAnimation(globalIndex),
+                                            child: item,
+                                          );
+                                        }
+
+                                        return item;
+                                      }, childCount: entry.value.length),
+                                    ),
+                                  ),
+                                ],
+                                if (paginatedState.hasMore)
+                                  const SliverToBoxAdapter(
+                                    child: Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(
+                                          AppTheme.space16,
+                                        ),
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    ),
+                                  ),
+                                const SliverToBoxAdapter(
+                                  child: SizedBox(height: AppTheme.space32),
                                 ),
-                              const SliverToBoxAdapter(
-                                child: SizedBox(height: AppTheme.space32),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      loading: () => const SkeletonList(),
-                      error: (error, stack) =>
-                          Center(child: Text('Error: $error')),
-                    );
-                  },
-                  loading: () => const SkeletonList(),
-                  error: (error, stack) => Center(child: Text('Error: $error')),
-                );
-              },
-              loading: () => const SkeletonList(),
-              error: (error, stack) => Center(child: Text('Error: $error')),
+                              ],
+                            ),
+                          );
+                        },
+                        loading: () => const SkeletonList(),
+                        error: (error, stack) =>
+                            Center(child: Text('Error: $error')),
+                      );
+                    },
+                    loading: () => const SkeletonList(),
+                    error: (error, stack) =>
+                        Center(child: Text('Error: $error')),
+                  );
+                },
+                loading: () => const SkeletonList(),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+              ),
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: SpeedDialFab(
-        items: [
-          SpeedDialItem(
-            icon: Icons.bolt,
-            label: context.l10n.quickAdd,
-            onPressed: _showQuickAdd,
-          ),
-          SpeedDialItem(
-            icon: Icons.add_shopping_cart,
-            label: context.l10n.addExpense,
-            onPressed: () => context.push(
-              '/group/${widget.groupId}/transactions/add-expense',
+          ],
+        ),
+        floatingActionButton: SpeedDialFab(
+          items: [
+            SpeedDialItem(
+              icon: Icons.bolt,
+              label: context.l10n.quickAdd,
+              onPressed: _showQuickAdd,
             ),
-          ),
-          SpeedDialItem(
-            icon: Icons.sync_alt,
-            label: context.l10n.addTransfer,
-            onPressed: () => context.push(
-              '/group/${widget.groupId}/transactions/add-transfer',
+            SpeedDialItem(
+              icon: Icons.add_shopping_cart,
+              label: context.l10n.addExpense,
+              onPressed: () => context.push(
+                '/group/${widget.groupId}/transactions/add-expense',
+              ),
             ),
-          ),
-          SpeedDialItem(
-            icon: Icons.document_scanner_outlined,
-            label: context.l10n.scanReceipt,
-            onPressed: () => context.push(
-              '/group/${widget.groupId}/transactions/add-expense?scan=true',
+            SpeedDialItem(
+              icon: Icons.sync_alt,
+              label: context.l10n.addTransfer,
+              onPressed: () => context.push(
+                '/group/${widget.groupId}/transactions/add-transfer',
+              ),
             ),
-          ),
-        ],
+            SpeedDialItem(
+              icon: Icons.document_scanner_outlined,
+              label: context.l10n.scanReceipt,
+              onPressed: () => context.push(
+                '/group/${widget.groupId}/transactions/add-expense?scan=true',
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
