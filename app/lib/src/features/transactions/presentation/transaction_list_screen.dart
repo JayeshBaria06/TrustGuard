@@ -20,8 +20,10 @@ import 'transaction_detail_screen.dart';
 import 'transaction_filter_sheet.dart';
 import 'transactions_providers.dart';
 import '../providers/paginated_transactions_provider.dart';
+import '../models/paginated_transactions_state.dart';
 import '../utils/transaction_grouper.dart';
 import 'widgets/date_group_header.dart';
+import '../../../ui/animations/staggered_list_animation.dart';
 
 class TransactionListScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -33,8 +35,11 @@ class TransactionListScreen extends ConsumerStatefulWidget {
       _TransactionListScreenState();
 }
 
-class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
+class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
+    with SingleTickerProviderStateMixin {
   late final ScrollController _scrollController;
+  StaggeredListAnimationController? _animationController;
+  int _lastAnimatedIndex = -1;
 
   @override
   void initState() {
@@ -46,7 +51,33 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _animationController?.dispose();
     super.dispose();
+  }
+
+  void _handleData(PaginatedTransactionsState paginatedState) {
+    final transactions = paginatedState.transactions;
+    if (transactions.isEmpty) {
+      _lastAnimatedIndex = -1;
+      _animationController?.dispose();
+      _animationController = null;
+      return;
+    }
+
+    // Detect fresh load: either no controller yet, or list got shorter (e.g. filter change)
+    if (_animationController == null ||
+        transactions.length < (_lastAnimatedIndex + 1)) {
+      _animationController?.dispose();
+      _animationController = StaggeredListAnimationController(
+        vsync: this,
+        itemCount: transactions.length,
+      );
+      _animationController!.startAnimation();
+      _lastAnimatedIndex = transactions.length - 1;
+    } else if (transactions.length > (_lastAnimatedIndex + 1)) {
+      // Pagination load: update index but don't restart stagger
+      _lastAnimatedIndex = transactions.length - 1;
+    }
   }
 
   void _onScroll() {
@@ -66,6 +97,20 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
     final groupAsync = ref.watch(groupStreamProvider(widget.groupId));
     final filter = ref.watch(transactionFilterProvider(widget.groupId));
+
+    ref.listen(paginatedTransactionsProvider(widget.groupId), (previous, next) {
+      next.whenData(_handleData);
+    });
+
+    // Initial load check
+    transactionsAsync.whenData((paginatedState) {
+      if (paginatedState.transactions.isNotEmpty &&
+          _animationController == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _handleData(paginatedState);
+        });
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -179,6 +224,15 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                         final currencyCode = group?.currencyCode ?? 'USD';
                         final grouped = groupTransactionsByDate(transactions);
 
+                        // Pre-calculate global indices for staggered animation
+                        final txToIndex = <String, int>{};
+                        int currentGlobalIndex = 0;
+                        for (final entry in grouped.entries) {
+                          for (final tx in entry.value) {
+                            txToIndex[tx.id] = currentGlobalIndex++;
+                          }
+                        }
+
                         return RefreshIndicator(
                           onRefresh: () => ref
                               .read(
@@ -211,7 +265,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                       index,
                                     ) {
                                       final tx = entry.value[index];
-                                      return Column(
+                                      final globalIndex = txToIndex[tx.id] ?? 0;
+
+                                      final item = Column(
                                         children: [
                                           _TransactionListItem(
                                             key: ValueKey(tx.id),
@@ -223,6 +279,20 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                             const Divider(),
                                         ],
                                       );
+
+                                      // Only wrap in StaggeredListItem if it's within the animated range
+                                      // and we have a controller.
+                                      if (_animationController != null &&
+                                          globalIndex <
+                                              _animationController!.itemCount) {
+                                        return StaggeredListItem(
+                                          animation: _animationController!
+                                              .getAnimation(globalIndex),
+                                          child: item,
+                                        );
+                                      }
+
+                                      return item;
                                     }, childCount: entry.value.length),
                                   ),
                                 ),
