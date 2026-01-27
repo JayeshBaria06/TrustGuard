@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:math' as math;
 import '../../../../app/app.dart';
 import '../../../../app/providers.dart';
 import '../../../../ui/animations/animation_config.dart';
+import '../../../../ui/components/balance_progress_bar.dart';
 import '../../../../ui/components/rolling_number_text.dart';
 import '../../../../ui/theme/app_theme.dart';
 import '../../models/global_balance_summary.dart';
@@ -37,6 +39,10 @@ class _DashboardCardContent extends ConsumerWidget {
     final formatMoney = ref.watch(moneyFormatterProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final maxAmount = math.max(
+      summary.totalOwedByMe.abs(),
+      summary.totalOwedToMe.abs(),
+    );
 
     return Card(
       elevation: 2,
@@ -76,6 +82,9 @@ class _DashboardCardContent extends ConsumerWidget {
                   child: _BalanceItem(
                     label: l10n.youOwe,
                     amount: summary.totalOwedByMe,
+                    maxAmount: maxAmount,
+                    // Use negative amount for "You Owe" to show on left (red)
+                    barAmount: -summary.totalOwedByMe,
                     color: summary.totalOwedByMe > 0
                         ? colorScheme.error
                         : Colors.green,
@@ -87,6 +96,9 @@ class _DashboardCardContent extends ConsumerWidget {
                   child: _BalanceItem(
                     label: l10n.owedToYou,
                     amount: summary.totalOwedToMe,
+                    maxAmount: maxAmount,
+                    // Use positive amount for "Owed To You" to show on right (green)
+                    barAmount: summary.totalOwedToMe,
                     color: summary.totalOwedToMe > 0
                         ? Colors.green
                         : theme.disabledColor,
@@ -142,12 +154,16 @@ class _DashboardCardContent extends ConsumerWidget {
 class _BalanceItem extends StatelessWidget {
   final String label;
   final int amount;
+  final int maxAmount;
+  final int barAmount;
   final Color color;
   final MoneyFormatter formatMoney;
 
   const _BalanceItem({
     required this.label,
     required this.amount,
+    required this.maxAmount,
+    required this.barAmount,
     required this.color,
     required this.formatMoney,
   });
@@ -172,6 +188,15 @@ class _BalanceItem extends StatelessWidget {
             fontWeight: FontWeight.bold,
             color: color,
           ),
+        ),
+        const SizedBox(height: AppTheme.space4),
+        BalanceProgressBar(
+          amount: barAmount,
+          maxAmount: maxAmount,
+          currencyCode: 'USD',
+          formatMoney: formatMoney,
+          showLabel: false,
+          height: 4,
         ),
       ],
     );
