@@ -25,6 +25,7 @@ import '../features/onboarding/services/onboarding_service.dart';
 import '../features/onboarding/models/onboarding_state.dart';
 import '../features/transactions/services/attachment_service.dart';
 import '../features/transactions/services/recurrence_service.dart';
+import '../features/transactions/services/amount_suggestion_service.dart';
 import '../core/services/coachmark_service.dart';
 
 /// Provider for the [AppDatabase] singleton.
@@ -268,4 +269,12 @@ final coachmarkServiceProvider = Provider<CoachmarkService>((ref) {
 final attachmentStorageUsageProvider = FutureProvider.autoDispose<int>((ref) {
   final service = ref.watch(attachmentServiceProvider);
   return service.getStorageUsage();
+});
+
+/// Provider for [AmountSuggestionService].
+final amountSuggestionServiceProvider = Provider<AmountSuggestionService>((
+  ref,
+) {
+  final transactionRepo = ref.watch(transactionRepositoryProvider);
+  return AmountSuggestionService(transactionRepo);
 });
