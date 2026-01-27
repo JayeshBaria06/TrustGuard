@@ -8,6 +8,7 @@ import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/skeletons/skeleton_card.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../../ui/components/skeletons/skeleton_list_item.dart';
+import '../../../ui/animations/lottie_assets.dart';
 import '../../../ui/animations/staggered_list_animation.dart';
 import '../../dashboard/presentation/widgets/dashboard_card.dart';
 import '../../dashboard/presentation/widgets/recent_activity_list.dart';
@@ -220,6 +221,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     child: Semantics(
                       label: 'No groups container',
                       child: EmptyState(
+                        lottiePath: showArchived
+                            ? null
+                            : LottieAssets.emptyGroups,
                         svgPath: showArchived
                             ? null
                             : 'assets/illustrations/empty_groups.svg',

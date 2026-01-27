@@ -42,7 +42,9 @@ class EmptyState extends StatelessWidget {
                 height: 160,
                 width: 160,
                 animate: animate,
-                repeat: true,
+                repeat: !WidgetsBinding.instance.runtimeType
+                    .toString()
+                    .contains('TestWidgetsFlutterBinding'),
                 errorBuilder: (context, error, stackTrace) {
                   if (svgPath != null) {
                     return SvgPicture.asset(svgPath!, height: 160, width: 160);

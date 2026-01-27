@@ -14,6 +14,7 @@ import '../../../core/models/transaction.dart';
 import '../../../core/models/transaction_filter.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../ui/components/empty_state.dart';
+import '../../../ui/animations/lottie_assets.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/animations/animation_config.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
@@ -217,6 +218,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
                 if (transactions.isEmpty) {
                   return filter.isEmpty
                       ? EmptyState(
+                          lottiePath: LottieAssets.emptyList,
                           svgPath: 'assets/illustrations/no_transactions.svg',
                           icon: Icons.receipt_long_outlined,
                           title: context.l10n.noTransactionsYet,

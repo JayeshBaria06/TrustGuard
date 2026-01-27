@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/providers.dart';
 import '../../../app/app.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../../ui/components/empty_state.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../../ui/animations/staggered_list_animation.dart';
 import '../../../core/utils/haptics.dart';
@@ -88,12 +89,12 @@ class _BalancesScreenState extends ConsumerState<BalancesScreen>
                   onRefresh: _onRefresh,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: AppTheme.space32),
-                        child: Text(
-                          context.l10n.calculating,
-                        ), // Fallback or appropriate message
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.7,
+                      child: EmptyState(
+                        icon: Icons.calculate_outlined,
+                        title: context.l10n.calculating,
+                        message: '',
                       ),
                     ),
                   ),

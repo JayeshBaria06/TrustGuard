@@ -7,6 +7,7 @@ import '../../../core/models/transaction_filter.dart';
 import '../../../core/services/undoable_action_service.dart';
 import '../../../ui/components/undo_snackbar.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../../ui/components/empty_state.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../generated/app_localizations.dart';
 import 'groups_providers.dart';
@@ -222,12 +223,14 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               child: membersAsync.when(
                 data: (members) {
                   if (members.isEmpty) {
-                    return const SingleChildScrollView(
-                      physics: AlwaysScrollableScrollPhysics(),
-                      child: Center(
-                        child: Padding(
-                          padding: EdgeInsets.only(top: AppTheme.space32),
-                          child: Text('No members found'),
+                    return SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.7,
+                        child: const EmptyState(
+                          icon: Icons.people_outline,
+                          title: 'No members found',
+                          message: 'Add members to start tracking expenses.',
                         ),
                       ),
                     );
