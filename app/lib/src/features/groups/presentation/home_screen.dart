@@ -10,10 +10,17 @@ import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../../ui/components/skeletons/skeleton_list_item.dart';
 import '../../dashboard/presentation/widgets/dashboard_card.dart';
 import '../../dashboard/presentation/widgets/recent_activity_list.dart';
+import '../../../core/utils/haptics.dart';
 import 'groups_providers.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
+
+  Future<void> _onRefresh(WidgetRef ref) async {
+    HapticsService.lightTap();
+    ref.invalidate(groupsWithMemberCountProvider);
+    await ref.read(groupsWithMemberCountProvider.future);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,176 +49,188 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: groupsAsync.when(
         data: (groups) {
-          return CustomScrollView(
-            key: const PageStorageKey('home_scroll_view'),
-            slivers: [
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppTheme.space16,
-                    AppTheme.space16,
-                    AppTheme.space16,
-                    0,
+          return RefreshIndicator(
+            onRefresh: () => _onRefresh(ref),
+            color: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            child: CustomScrollView(
+              key: const PageStorageKey('home_scroll_view'),
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      AppTheme.space16,
+                      AppTheme.space16,
+                      AppTheme.space16,
+                      0,
+                    ),
+                    child: DashboardCard(),
                   ),
-                  child: DashboardCard(),
                 ),
-              ),
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.only(top: AppTheme.space24),
-                  child: RecentActivityList(),
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: AppTheme.space24),
+                    child: RecentActivityList(),
+                  ),
                 ),
-              ),
-              if (groups.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Semantics(
-                    label: 'No groups container',
-                    child: EmptyState(
-                      svgPath: showArchived
-                          ? null
-                          : 'assets/illustrations/empty_groups.svg',
-                      icon: showArchived
-                          ? Icons.archive_outlined
-                          : Icons.group_off_outlined,
-                      title: showArchived
-                          ? context.l10n.noArchivedGroups
-                          : context.l10n.noGroupsYet,
-                      message: showArchived
-                          ? context.l10n.noArchivedGroupsMessage
-                          : context.l10n.noGroupsMessage,
-                      actionLabel: showArchived
-                          ? null
-                          : context.l10n.createGroup,
-                      onActionPressed: showArchived
-                          ? null
-                          : () => context.push('/group/create'),
+                if (groups.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Semantics(
+                      label: 'No groups container',
+                      child: EmptyState(
+                        svgPath: showArchived
+                            ? null
+                            : 'assets/illustrations/empty_groups.svg',
+                        icon: showArchived
+                            ? Icons.archive_outlined
+                            : Icons.group_off_outlined,
+                        title: showArchived
+                            ? context.l10n.noArchivedGroups
+                            : context.l10n.noGroupsYet,
+                        message: showArchived
+                            ? context.l10n.noArchivedGroupsMessage
+                            : context.l10n.noGroupsMessage,
+                        actionLabel: showArchived
+                            ? null
+                            : context.l10n.createGroup,
+                        onActionPressed: showArchived
+                            ? null
+                            : () => context.push('/group/create'),
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.all(AppTheme.space16),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final item = groups[index];
+                        final group = item.group;
+                        final isArchived = group.archivedAt != null;
+
+                        return Semantics(
+                          label: 'Group card: ${group.name}',
+                          child: Card(
+                            key: ValueKey(group.id),
+                            clipBehavior: Clip.antiAlias,
+                            margin: const EdgeInsets.only(
+                              bottom: AppTheme.space16,
+                            ),
+                            child: ListTile(
+                              title: Text(
+                                group.name,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  decoration: isArchived
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                ),
+                              ),
+                              subtitle: Text(
+                                '${context.l10n.membersCount(item.memberCount)} • ${group.currencyCode}',
+                                style: TextStyle(
+                                  fontStyle: isArchived
+                                      ? FontStyle.italic
+                                      : null,
+                                ),
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        context.l10n.balance,
+                                        style: const TextStyle(fontSize: 11),
+                                      ),
+                                      Text(
+                                        context.l10n.settled,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: isArchived
+                                              ? Colors.grey
+                                              : Colors.green,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: AppTheme.space8),
+                                  PopupMenuButton<String>(
+                                    onSelected: (value) async {
+                                      switch (value) {
+                                        case 'edit':
+                                          context.push(
+                                            '/group/${group.id}/edit',
+                                          );
+                                          break;
+                                        case 'archive':
+                                          await ref
+                                              .read(groupRepositoryProvider)
+                                              .archiveGroup(group.id);
+                                          break;
+                                        case 'unarchive':
+                                          await ref
+                                              .read(groupRepositoryProvider)
+                                              .unarchiveGroup(group.id);
+                                          break;
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      PopupMenuItem(
+                                        value: 'edit',
+                                        child: ListTile(
+                                          leading: const Icon(
+                                            Icons.edit_outlined,
+                                          ),
+                                          title: Text(context.l10n.edit),
+                                          contentPadding: EdgeInsets.zero,
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ),
+                                      if (!isArchived)
+                                        PopupMenuItem(
+                                          value: 'archive',
+                                          child: ListTile(
+                                            leading: const Icon(
+                                              Icons.archive_outlined,
+                                            ),
+                                            title: Text(context.l10n.archive),
+                                            contentPadding: EdgeInsets.zero,
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                          ),
+                                        )
+                                      else
+                                        PopupMenuItem(
+                                          value: 'unarchive',
+                                          child: ListTile(
+                                            leading: const Icon(
+                                              Icons.unarchive_outlined,
+                                            ),
+                                            title: Text(context.l10n.unarchive),
+                                            contentPadding: EdgeInsets.zero,
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                          ),
+                                        ),
+                                    ],
+                                    tooltip: context.l10n.groupOptions,
+                                  ),
+                                ],
+                              ),
+                              onTap: () => context.push('/group/${group.id}'),
+                            ),
+                          ),
+                        );
+                      }, childCount: groups.length),
                     ),
                   ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.all(AppTheme.space16),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final item = groups[index];
-                      final group = item.group;
-                      final isArchived = group.archivedAt != null;
-
-                      return Semantics(
-                        label: 'Group card: ${group.name}',
-                        child: Card(
-                          key: ValueKey(group.id),
-                          clipBehavior: Clip.antiAlias,
-                          margin: const EdgeInsets.only(
-                            bottom: AppTheme.space16,
-                          ),
-                          child: ListTile(
-                            title: Text(
-                              group.name,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                decoration: isArchived
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '${context.l10n.membersCount(item.memberCount)} • ${group.currencyCode}',
-                              style: TextStyle(
-                                fontStyle: isArchived ? FontStyle.italic : null,
-                              ),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      context.l10n.balance,
-                                      style: const TextStyle(fontSize: 11),
-                                    ),
-                                    Text(
-                                      context.l10n.settled,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: isArchived
-                                            ? Colors.grey
-                                            : Colors.green,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(width: AppTheme.space8),
-                                PopupMenuButton<String>(
-                                  onSelected: (value) async {
-                                    switch (value) {
-                                      case 'edit':
-                                        context.push('/group/${group.id}/edit');
-                                        break;
-                                      case 'archive':
-                                        await ref
-                                            .read(groupRepositoryProvider)
-                                            .archiveGroup(group.id);
-                                        break;
-                                      case 'unarchive':
-                                        await ref
-                                            .read(groupRepositoryProvider)
-                                            .unarchiveGroup(group.id);
-                                        break;
-                                    }
-                                  },
-                                  itemBuilder: (context) => [
-                                    PopupMenuItem(
-                                      value: 'edit',
-                                      child: ListTile(
-                                        leading: const Icon(
-                                          Icons.edit_outlined,
-                                        ),
-                                        title: Text(context.l10n.edit),
-                                        contentPadding: EdgeInsets.zero,
-                                        visualDensity: VisualDensity.compact,
-                                      ),
-                                    ),
-                                    if (!isArchived)
-                                      PopupMenuItem(
-                                        value: 'archive',
-                                        child: ListTile(
-                                          leading: const Icon(
-                                            Icons.archive_outlined,
-                                          ),
-                                          title: Text(context.l10n.archive),
-                                          contentPadding: EdgeInsets.zero,
-                                          visualDensity: VisualDensity.compact,
-                                        ),
-                                      )
-                                    else
-                                      PopupMenuItem(
-                                        value: 'unarchive',
-                                        child: ListTile(
-                                          leading: const Icon(
-                                            Icons.unarchive_outlined,
-                                          ),
-                                          title: Text(context.l10n.unarchive),
-                                          contentPadding: EdgeInsets.zero,
-                                          visualDensity: VisualDensity.compact,
-                                        ),
-                                      ),
-                                  ],
-                                  tooltip: context.l10n.groupOptions,
-                                ),
-                              ],
-                            ),
-                            onTap: () => context.push('/group/${group.id}'),
-                          ),
-                        ),
-                      );
-                    }, childCount: groups.length),
-                  ),
-                ),
-            ],
+              ],
+            ),
           );
         },
         loading: () => CustomScrollView(

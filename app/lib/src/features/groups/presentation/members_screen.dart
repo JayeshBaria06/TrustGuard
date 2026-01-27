@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../app/providers.dart';
 import '../../../core/models/member.dart';
 import '../../../ui/theme/app_theme.dart';
+import '../../../core/utils/haptics.dart';
 import 'groups_providers.dart';
 
 class MembersScreen extends ConsumerStatefulWidget {
@@ -17,6 +18,13 @@ class MembersScreen extends ConsumerStatefulWidget {
 
 class _MembersScreenState extends ConsumerState<MembersScreen> {
   final _nameController = TextEditingController();
+
+  Future<void> _onRefresh() async {
+    HapticsService.lightTap();
+    ref.invalidate(membersByGroupProvider(widget.groupId));
+    await ref.read(membersByGroupProvider(widget.groupId).future);
+  }
+
   final _formKey = GlobalKey<FormState>();
   bool _isAdding = false;
 
@@ -149,53 +157,67 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               ),
             ),
           Expanded(
-            child: membersAsync.when(
-              data: (members) {
-                if (members.isEmpty) {
-                  return const Center(child: Text('No members found'));
-                }
-
-                return ListView.separated(
-                  key: const PageStorageKey('members_list'),
-                  itemCount: members.length,
-                  separatorBuilder: (context, index) =>
-                      const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final member = members[index];
-                    final isRemoved = member.removedAt != null;
-
-                    return ListTile(
-                      key: ValueKey(member.id),
-                      leading: CircleAvatar(
-                        child: Text(member.displayName[0].toUpperCase()),
-                      ),
-
-                      title: Text(
-                        member.displayName,
-                        style: TextStyle(
-                          decoration: isRemoved
-                              ? TextDecoration.lineThrough
-                              : null,
-                          color: isRemoved ? Colors.grey : null,
+            child: RefreshIndicator(
+              onRefresh: _onRefresh,
+              color: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              child: membersAsync.when(
+                data: (members) {
+                  if (members.isEmpty) {
+                    return const SingleChildScrollView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      child: Center(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: AppTheme.space32),
+                          child: Text('No members found'),
                         ),
                       ),
-                      trailing: isRemoved
-                          ? IconButton(
-                              icon: const Icon(Icons.restore),
-                              onPressed: () => _restoreMember(member),
-                              tooltip: 'Restore',
-                            )
-                          : IconButton(
-                              icon: const Icon(Icons.person_remove_outlined),
-                              onPressed: () => _removeMember(member),
-                              tooltip: 'Remove',
-                            ),
                     );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text('Error: $error')),
+                  }
+
+                  return ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    key: const PageStorageKey('members_list'),
+                    itemCount: members.length,
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final member = members[index];
+                      final isRemoved = member.removedAt != null;
+
+                      return ListTile(
+                        key: ValueKey(member.id),
+                        leading: CircleAvatar(
+                          child: Text(member.displayName[0].toUpperCase()),
+                        ),
+
+                        title: Text(
+                          member.displayName,
+                          style: TextStyle(
+                            decoration: isRemoved
+                                ? TextDecoration.lineThrough
+                                : null,
+                            color: isRemoved ? Colors.grey : null,
+                          ),
+                        ),
+                        trailing: isRemoved
+                            ? IconButton(
+                                icon: const Icon(Icons.restore),
+                                onPressed: () => _restoreMember(member),
+                                tooltip: 'Restore',
+                              )
+                            : IconButton(
+                                icon: const Icon(Icons.person_remove_outlined),
+                                onPressed: () => _removeMember(member),
+                                tooltip: 'Remove',
+                              ),
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+              ),
             ),
           ),
         ],

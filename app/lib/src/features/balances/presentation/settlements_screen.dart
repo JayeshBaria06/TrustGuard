@@ -14,6 +14,7 @@ import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../groups/presentation/groups_providers.dart';
 import '../providers/balance_providers.dart';
 import '../services/balance_service.dart';
+import '../../../core/utils/haptics.dart';
 
 class SettlementsScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -26,6 +27,12 @@ class SettlementsScreen extends ConsumerStatefulWidget {
 
 class _SettlementsScreenState extends ConsumerState<SettlementsScreen> {
   late ConfettiController _confettiController;
+
+  Future<void> _onRefresh() async {
+    HapticsService.lightTap();
+    ref.invalidate(groupBalancesProvider(widget.groupId));
+    await ref.read(groupBalancesProvider(widget.groupId).future);
+  }
 
   @override
   void initState() {
@@ -62,107 +69,121 @@ class _SettlementsScreenState extends ConsumerState<SettlementsScreen> {
       appBar: AppBar(title: Text(l10n.settlements)),
       body: Stack(
         children: [
-          groupAsync.when(
-            data: (group) {
-              final currency = group?.currencyCode ?? 'USD';
-              return balancesAsync.when(
-                data: (balances) {
-                  final suggestions = ref.watch(
-                    settlementSuggestionsProvider(widget.groupId),
-                  );
-
-                  if (suggestions.isEmpty) {
-                    return EmptyState(
-                      svgPath: 'assets/illustrations/all_settled.svg',
-                      icon: Icons.check_circle_outline,
-                      title: l10n.allSettledUp,
-                      message: '', // Message is optional or can be empty
+          RefreshIndicator(
+            onRefresh: _onRefresh,
+            color: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            child: groupAsync.when(
+              data: (group) {
+                final currency = group?.currencyCode ?? 'USD';
+                return balancesAsync.when(
+                  data: (balances) {
+                    final suggestions = ref.watch(
+                      settlementSuggestionsProvider(widget.groupId),
                     );
-                  }
 
-                  final actionRequired = suggestions
-                      .where((s) => s.fromMemberId == selfMemberId)
-                      .toList();
-                  final incoming = suggestions
-                      .where((s) => s.toMemberId == selfMemberId)
-                      .toList();
-                  final other = suggestions
-                      .where(
-                        (s) =>
-                            s.fromMemberId != selfMemberId &&
-                            s.toMemberId != selfMemberId,
-                      )
-                      .toList();
+                    if (suggestions.isEmpty) {
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.7,
+                            child: EmptyState(
+                              svgPath: 'assets/illustrations/all_settled.svg',
+                              icon: Icons.check_circle_outline,
+                              title: l10n.allSettledUp,
+                              message:
+                                  '', // Message is optional or can be empty
+                            ),
+                          ),
+                        ],
+                      );
+                    }
 
-                  return ListView(
-                    padding: const EdgeInsets.all(AppTheme.space16),
-                    children: [
-                      if (selfMemberId == null)
-                        _buildSelfMemberSelector(
-                          context,
-                          ref,
-                          widget.groupId,
-                          membersAsync,
-                        ),
-                      if (actionRequired.isNotEmpty) ...[
-                        _buildSectionHeader(
-                          context,
-                          l10n.actionRequired,
-                          Colors.red,
-                        ),
-                        ...actionRequired.map(
-                          (s) => _SuggestionCard(
-                            suggestion: s,
-                            groupId: widget.groupId,
-                            currency: currency,
-                            formatMoney: formatMoney,
-                            isOutgoing: true,
+                    final actionRequired = suggestions
+                        .where((s) => s.fromMemberId == selfMemberId)
+                        .toList();
+                    final incoming = suggestions
+                        .where((s) => s.toMemberId == selfMemberId)
+                        .toList();
+                    final other = suggestions
+                        .where(
+                          (s) =>
+                              s.fromMemberId != selfMemberId &&
+                              s.toMemberId != selfMemberId,
+                        )
+                        .toList();
+
+                    return ListView(
+                      padding: const EdgeInsets.all(AppTheme.space16),
+                      children: [
+                        if (selfMemberId == null)
+                          _buildSelfMemberSelector(
+                            context,
+                            ref,
+                            widget.groupId,
+                            membersAsync,
                           ),
-                        ),
-                        const SizedBox(height: AppTheme.space16),
-                      ],
-                      if (incoming.isNotEmpty) ...[
-                        _buildSectionHeader(
-                          context,
-                          l10n.incoming,
-                          Colors.green,
-                        ),
-                        ...incoming.map(
-                          (s) => _SuggestionCard(
-                            suggestion: s,
-                            groupId: widget.groupId,
-                            currency: currency,
-                            formatMoney: formatMoney,
-                            isIncoming: true,
+                        if (actionRequired.isNotEmpty) ...[
+                          _buildSectionHeader(
+                            context,
+                            l10n.actionRequired,
+                            Colors.red,
                           ),
-                        ),
-                        const SizedBox(height: AppTheme.space16),
+                          ...actionRequired.map(
+                            (s) => _SuggestionCard(
+                              suggestion: s,
+                              groupId: widget.groupId,
+                              currency: currency,
+                              formatMoney: formatMoney,
+                              isOutgoing: true,
+                            ),
+                          ),
+                          const SizedBox(height: AppTheme.space16),
+                        ],
+                        if (incoming.isNotEmpty) ...[
+                          _buildSectionHeader(
+                            context,
+                            l10n.incoming,
+                            Colors.green,
+                          ),
+                          ...incoming.map(
+                            (s) => _SuggestionCard(
+                              suggestion: s,
+                              groupId: widget.groupId,
+                              currency: currency,
+                              formatMoney: formatMoney,
+                              isIncoming: true,
+                            ),
+                          ),
+                          const SizedBox(height: AppTheme.space16),
+                        ],
+                        if (other.isNotEmpty)
+                          ExpansionTile(
+                            title: Text(l10n.otherSettlements),
+                            initiallyExpanded: selfMemberId == null,
+                            children: other
+                                .map(
+                                  (s) => _SuggestionCard(
+                                    suggestion: s,
+                                    groupId: widget.groupId,
+                                    currency: currency,
+                                    formatMoney: formatMoney,
+                                  ),
+                                )
+                                .toList(),
+                          ),
                       ],
-                      if (other.isNotEmpty)
-                        ExpansionTile(
-                          title: Text(l10n.otherSettlements),
-                          initiallyExpanded: selfMemberId == null,
-                          children: other
-                              .map(
-                                (s) => _SuggestionCard(
-                                  suggestion: s,
-                                  groupId: widget.groupId,
-                                  currency: currency,
-                                  formatMoney: formatMoney,
-                                ),
-                              )
-                              .toList(),
-                        ),
-                    ],
-                  );
-                },
-                loading: () => const SkeletonList(),
-                error: (e, _) =>
-                    Center(child: Text('Error loading balances: $e')),
-              );
-            },
-            loading: () => const SkeletonList(),
-            error: (e, _) => Center(child: Text('Error loading group: $e')),
+                    );
+                  },
+                  loading: () => const SkeletonList(),
+                  error: (e, _) =>
+                      Center(child: Text('Error loading balances: $e')),
+                );
+              },
+              loading: () => const SkeletonList(),
+              error: (e, _) => Center(child: Text('Error loading group: $e')),
+            ),
           ),
           Align(
             alignment: Alignment.topCenter,
