@@ -8,24 +8,75 @@ import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/skeletons/skeleton_card.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../../ui/components/skeletons/skeleton_list_item.dart';
+import '../../../ui/animations/staggered_list_animation.dart';
 import '../../dashboard/presentation/widgets/dashboard_card.dart';
 import '../../dashboard/presentation/widgets/recent_activity_list.dart';
 import '../../../core/utils/haptics.dart';
 import 'groups_providers.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
-  Future<void> _onRefresh(WidgetRef ref) async {
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  StaggeredListAnimationController? _staggeredController;
+  int _lastItemCount = 0;
+
+  @override
+  void dispose() {
+    _staggeredController?.dispose();
+    super.dispose();
+  }
+
+  void _updateAnimationController(int count) {
+    if (_staggeredController != null && _lastItemCount == count) {
+      _staggeredController?.reset();
+      _staggeredController?.startAnimation();
+      return;
+    }
+
+    _staggeredController?.dispose();
+    _staggeredController = StaggeredListAnimationController(
+      vsync: this,
+      itemCount: count,
+    );
+    _lastItemCount = count;
+    _staggeredController!.startAnimation();
+  }
+
+  Future<void> _onRefresh() async {
     HapticsService.lightTap();
     ref.invalidate(groupsWithMemberCountProvider);
     await ref.read(groupsWithMemberCountProvider.future);
+    // Animation will be restarted via ref.listen or whenData check
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final groupsAsync = ref.watch(groupsWithMemberCountProvider);
     final showArchived = ref.watch(showArchivedGroupsProvider);
+
+    // Restart animation when data changes
+    ref.listen(groupsWithMemberCountProvider, (previous, next) {
+      next.whenData((groups) {
+        if (groups.isNotEmpty) {
+          _updateAnimationController(groups.length);
+        }
+      });
+    });
+
+    // Initial load check
+    groupsAsync.whenData((groups) {
+      if (groups.isNotEmpty && _staggeredController == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _updateAnimationController(groups.length);
+        });
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -50,7 +101,7 @@ class HomeScreen extends ConsumerWidget {
       body: groupsAsync.when(
         data: (groups) {
           return RefreshIndicator(
-            onRefresh: () => _onRefresh(ref),
+            onRefresh: _onRefresh,
             color: Theme.of(context).colorScheme.primary,
             backgroundColor: Theme.of(context).colorScheme.surface,
             child: CustomScrollView(
@@ -110,7 +161,7 @@ class HomeScreen extends ConsumerWidget {
                         final group = item.group;
                         final isArchived = group.archivedAt != null;
 
-                        return Semantics(
+                        final card = Semantics(
                           label: 'Group card: ${group.name}',
                           child: Card(
                             key: ValueKey(group.id),
@@ -226,6 +277,17 @@ class HomeScreen extends ConsumerWidget {
                             ),
                           ),
                         );
+
+                        if (_staggeredController != null) {
+                          return StaggeredListItem(
+                            animation: _staggeredController!.getAnimation(
+                              index,
+                            ),
+                            child: card,
+                          );
+                        }
+
+                        return card;
                       }, childCount: groups.length),
                     ),
                   ),
