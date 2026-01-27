@@ -13,6 +13,7 @@ import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
 import '../../../ui/animations/shake_widget.dart';
 import '../../../ui/components/amount_input_field.dart';
+import '../../../ui/components/amount_suggestion_chips.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../groups/presentation/groups_providers.dart';
 import 'transactions_providers.dart';
@@ -282,6 +283,33 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
     }
   }
 
+  Widget _buildAmountSuggestions(
+    AsyncValue<List<int>> suggestionsAsync,
+    String currency,
+  ) {
+    return suggestionsAsync.when(
+      data: (suggestions) {
+        if (suggestions.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppTheme.space8),
+          child: AmountSuggestionChips(
+            suggestions: suggestions,
+            currencyCode: currency,
+            onSelected: (amount) {
+              setState(() {
+                _amountController.text = MoneyUtils.fromMinorUnits(
+                  amount,
+                ).toStringAsFixed(2);
+              });
+            },
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+
   Widget _buildTagsSection() {
     final tagsAsync = ref.watch(tagsProvider(widget.groupId));
 
@@ -326,6 +354,9 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
     final groupAsync = ref.watch(groupStreamProvider(widget.groupId));
+    final suggestionsAsync = ref.watch(
+      amountSuggestionsProvider(widget.groupId),
+    );
     final useCustomKeypad = ref.watch(customKeypadProvider);
     final isEdit = widget.transactionId != null;
 
@@ -413,6 +444,7 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            _buildAmountSuggestions(suggestionsAsync, currency),
                             if (useCustomKeypad) ...[
                               Card(
                                 margin: const EdgeInsets.only(
@@ -426,6 +458,9 @@ class _AddTransferScreenState extends ConsumerState<AddTransferScreen> {
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: AmountInputField(
+                                  key: ValueKey(
+                                    'amount_${_amountController.text}',
+                                  ),
                                   initialValue: MoneyUtils.toMinorUnits(
                                     double.tryParse(_amountController.text) ??
                                         0,
