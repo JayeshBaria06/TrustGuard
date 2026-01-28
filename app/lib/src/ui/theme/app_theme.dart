@@ -43,4 +43,52 @@ class AppTheme {
       extensions: [AppColorsExtension.dark],
     );
   }
+
+  static ThemeData get highContrastLightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme:
+          ColorScheme.fromSeed(
+            seedColor: _seedColor,
+            brightness: Brightness.light,
+            surface: Colors.white,
+            onSurface: Colors.black,
+            error: const Color(0xFFB00020), // Darker red
+          ).copyWith(
+            primary: const Color(0xFF0000BA), // High contrast blue
+            onPrimary: Colors.white,
+          ),
+      scaffoldBackgroundColor: Colors.white,
+      appBarTheme: const AppBarTheme(
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+      ),
+      extensions: [AppColorsExtension.highContrastLight],
+    );
+  }
+
+  static ThemeData get highContrastDarkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme:
+          ColorScheme.fromSeed(
+            seedColor: _seedColor,
+            brightness: Brightness.dark,
+            surface: Colors.black,
+            onSurface: Colors.white,
+            error: const Color(0xFFFFB4AB), // Lighter red
+          ).copyWith(
+            primary: const Color(0xFFEFB7FF), // High contrast lighter purple
+            onPrimary: Colors.black,
+          ),
+      scaffoldBackgroundColor: Colors.black,
+      appBarTheme: const AppBarTheme(
+        centerTitle: true,
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+      ),
+      extensions: [AppColorsExtension.highContrastDark],
+    );
+  }
 }

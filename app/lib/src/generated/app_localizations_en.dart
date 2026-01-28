@@ -553,4 +553,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get percentage => 'Percentage';
+
+  @override
+  String get highContrast => 'High Contrast Mode';
+
+  @override
+  String get highContrastDesc =>
+      'Maximize legibility with higher contrast colors';
 }

@@ -97,6 +97,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               showSelectedIcon: false,
             ),
           ),
+          SwitchListTile(
+            secondary: const Icon(Icons.contrast),
+            title: Text(context.l10n.highContrast),
+            subtitle: Text(context.l10n.highContrastDesc),
+            value: themeState.isHighContrast,
+            onChanged: (value) =>
+                ref.read(themeStateProvider.notifier).toggleHighContrast(value),
+          ),
           const Divider(),
           _buildSectionHeader(context, context.l10n.security),
           ListTile(

@@ -1047,6 +1047,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Percentage'**
   String get percentage;
+
+  /// No description provided for @highContrast.
+  ///
+  /// In en, this message translates to:
+  /// **'High Contrast Mode'**
+  String get highContrast;
+
+  /// No description provided for @highContrastDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximize legibility with higher contrast colors'**
+  String get highContrastDesc;
 }
 
 class _AppLocalizationsDelegate

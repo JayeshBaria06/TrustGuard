@@ -293,5 +293,7 @@
   "swipeActionHint": "Swipe left to edit or delete transactions",
   "receiptScanHint": "Tap to scan a receipt and auto-fill the amount",
   "amount": "Amount",
-  "percentage": "Percentage"
+  "percentage": "Percentage",
+  "highContrast": "High Contrast Mode",
+  "highContrastDesc": "Maximize legibility with higher contrast colors"
 }

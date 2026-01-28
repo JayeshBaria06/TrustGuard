@@ -6,6 +6,7 @@ enum ThemeModePreference { system, light, dark }
 class ThemeService {
   final SharedPreferences _prefs;
   static const String _themeModeKey = 'theme_mode';
+  static const String _highContrastKey = 'high_contrast_enabled';
 
   ThemeService(this._prefs);
 
@@ -19,8 +20,16 @@ class ThemeService {
     );
   }
 
+  bool getHighContrast() {
+    return _prefs.getBool(_highContrastKey) ?? false;
+  }
+
   Future<void> setThemeMode(ThemeModePreference mode) async {
     await _prefs.setString(_themeModeKey, mode.name);
+  }
+
+  Future<void> setHighContrast(bool enabled) async {
+    await _prefs.setBool(_highContrastKey, enabled);
   }
 
   ThemeMode toFlutterThemeMode(ThemeModePreference preference) {

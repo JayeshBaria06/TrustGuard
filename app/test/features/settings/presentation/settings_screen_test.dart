@@ -73,6 +73,7 @@ void main() {
     expect(find.text('Settings'), findsOneWidget);
     expect(find.text('Display'), findsOneWidget);
     expect(find.text('Rounding'), findsOneWidget);
+    expect(find.text('High Contrast Mode'), findsOneWidget);
     expect(find.text('Security'), findsOneWidget);
     expect(find.text('Set PIN'), findsOneWidget);
 
@@ -141,6 +142,8 @@ void main() {
       SwitchListTile,
       'Biometric Unlock',
     );
+    await tester.ensureVisible(switchFinder);
+    await tester.pumpAndSettle();
     await tester.tap(switchFinder);
     await tester.pumpAndSettle();
 

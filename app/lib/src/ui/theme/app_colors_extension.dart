@@ -42,4 +42,16 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     success: Color(0xFF81C784), // Green 300 - High contrast on dark surface
     onSuccess: Colors.black,
   );
+
+  // Static constant for high contrast light theme
+  static const highContrastLight = AppColorsExtension(
+    success: Color(0xFF004D40), // Dark Teal - Very high contrast
+    onSuccess: Colors.white,
+  );
+
+  // Static constant for high contrast dark theme
+  static const highContrastDark = AppColorsExtension(
+    success: Color(0xFF69F0AE), // Green A200 - Very high contrast
+    onSuccess: Colors.black,
+  );
 }

@@ -89,8 +89,12 @@ class _TrustGuardAppState extends ConsumerState<TrustGuardApp>
       },
       child: MaterialApp.router(
         title: 'TrustGuard',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
+        theme: themeState.isHighContrast
+            ? AppTheme.highContrastLightTheme
+            : AppTheme.lightTheme,
+        darkTheme: themeState.isHighContrast
+            ? AppTheme.highContrastDarkTheme
+            : AppTheme.darkTheme,
         themeMode: themeService.toFlutterThemeMode(themeState.currentMode),
         routerConfig: router,
         debugShowCheckedModeBanner: false,

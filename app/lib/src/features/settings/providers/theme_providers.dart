@@ -22,12 +22,23 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
   final ThemeService _themeService;
 
   ThemeNotifier(this._themeService)
-    : super(ThemeState(currentMode: _themeService.getThemeMode()));
+    : super(
+        ThemeState(
+          currentMode: _themeService.getThemeMode(),
+          isHighContrast: _themeService.getHighContrast(),
+        ),
+      );
 
   /// Updates the current theme mode and persists the preference.
   Future<void> setThemeMode(ThemeModePreference mode) async {
     await _themeService.setThemeMode(mode);
     state = state.copyWith(currentMode: mode);
+  }
+
+  /// Toggles high contrast mode and persists the preference.
+  Future<void> toggleHighContrast(bool enabled) async {
+    await _themeService.setHighContrast(enabled);
+    state = state.copyWith(isHighContrast: enabled);
   }
 
   /// Returns the current [ThemeModePreference].

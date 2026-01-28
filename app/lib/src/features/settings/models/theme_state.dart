@@ -8,6 +8,7 @@ part 'theme_state.g.dart';
 abstract class ThemeState with _$ThemeState {
   const factory ThemeState({
     @Default(ThemeModePreference.system) ThemeModePreference currentMode,
+    @Default(false) bool isHighContrast,
   }) = _ThemeState;
 
   factory ThemeState.fromJson(Map<String, dynamic> json) =>
