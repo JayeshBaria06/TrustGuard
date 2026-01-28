@@ -11,12 +11,14 @@ import '../core/database/repositories/tag_repository.dart';
 import '../core/database/repositories/reminder_repository.dart';
 import '../core/database/repositories/attachment_repository.dart';
 import '../core/database/repositories/recurring_transaction_repository.dart';
+import '../core/database/repositories/template_repository.dart';
 import '../core/platform/app_lock_service.dart';
 import '../core/platform/notification_service.dart';
 import '../core/platform/local_log_service.dart';
 import '../core/models/tag_with_usage.dart';
 import '../core/models/reminder_settings.dart';
 import '../core/models/tag.dart' as model;
+import '../core/models/expense_template.dart';
 import '../core/utils/money.dart';
 import '../features/export_backup/services/export_service.dart';
 import '../features/export_backup/services/backup_service.dart';
@@ -165,6 +167,12 @@ final recurringTransactionRepositoryProvider =
       return DriftRecurringTransactionRepository(db);
     });
 
+/// Provider for [TemplateRepository].
+final templateRepositoryProvider = Provider<TemplateRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return DriftTemplateRepository(db);
+});
+
 /// Provider for watching reminder settings for a group.
 final reminderSettingsProvider =
     StreamProvider.family<ReminderSettings?, String>((ref, groupId) {
@@ -187,6 +195,15 @@ final tagsProvider = StreamProvider.family<List<model.Tag>, String>((
 ) {
   final repo = ref.watch(tagRepositoryProvider);
   return repo.watchTagsByGroup(groupId);
+});
+
+/// Provider for watching templates in a group.
+final templatesProvider = StreamProvider.family<List<ExpenseTemplate>, String>((
+  ref,
+  groupId,
+) {
+  final repo = ref.watch(templateRepositoryProvider);
+  return repo.watchTemplatesByGroup(groupId);
 });
 
 /// Provider for [ExportService].
