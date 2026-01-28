@@ -15,6 +15,7 @@ import 'tables/transaction_tags.dart';
 import 'tables/group_reminders.dart';
 import 'tables/recurring_transactions.dart';
 import 'tables/expense_templates.dart';
+import 'tables/budgets.dart';
 
 import 'tables/attachments.dart';
 
@@ -34,13 +35,14 @@ part 'database.g.dart';
     GroupReminders,
     RecurringTransactions,
     ExpenseTemplates,
+    Budgets,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -78,6 +80,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 7) {
           await m.createTable(expenseTemplates);
+        }
+        if (from < 8) {
+          await m.createTable(budgets);
         }
       },
       beforeOpen: (details) async {
