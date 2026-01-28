@@ -7,6 +7,7 @@ class Members extends Table {
   TextColumn get displayName => text()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get removedAt => dateTime().nullable()();
+  TextColumn get avatarUrl => text().nullable()();
   IntColumn get orderIndex => integer().withDefault(const Constant(0))();
 
   @override

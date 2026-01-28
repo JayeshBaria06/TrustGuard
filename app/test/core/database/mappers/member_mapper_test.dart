@@ -12,6 +12,7 @@ void main() {
       displayName: 'Member 1',
       createdAt: now,
       removedAt: null,
+      avatarUrl: 'https://example.com/avatar.png',
       orderIndex: 0,
     );
 
@@ -21,6 +22,7 @@ void main() {
       displayName: 'Member 1',
       createdAt: now,
       removedAt: null,
+      avatarUrl: 'https://example.com/avatar.png',
       orderIndex: 0,
     );
 
@@ -36,6 +38,7 @@ void main() {
       expect(result.displayName.value, equals(memberModel.displayName));
       expect(result.createdAt.value, equals(memberModel.createdAt));
       expect(result.removedAt.value, equals(memberModel.removedAt));
+      expect(result.avatarUrl.value, equals(memberModel.avatarUrl));
     });
   });
 }
