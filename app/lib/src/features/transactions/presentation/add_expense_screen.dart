@@ -15,6 +15,7 @@ import '../../../core/models/recurring_transaction.dart';
 import '../../../core/models/tag.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/services/coachmark_service.dart';
+import '../../../core/models/expense_template.dart' as template_model;
 import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
@@ -27,22 +28,24 @@ import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/haptic_slider.dart';
 import '../../ocr/models/receipt_data.dart';
 import '../../ocr/providers/ocr_providers.dart';
+import '../../templates/presentation/save_as_template_sheet.dart';
+import '../models/expense_form_data.dart';
 import 'widgets/split_preview_bar.dart';
 import '../../groups/presentation/groups_providers.dart';
 import 'transactions_providers.dart';
-
-enum CustomSplitMode { amount, percentage }
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
   final String groupId;
   final String? transactionId;
   final bool initialScan;
+  final template_model.ExpenseTemplate? initialTemplate;
 
   const AddExpenseScreen({
     super.key,
     required this.groupId,
     this.transactionId,
     this.initialScan = false,
+    this.initialTemplate,
   });
 
   @override
@@ -523,6 +526,51 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     return (parts[0][0] + parts.last[0]).toUpperCase();
   }
 
+  void _showSaveTemplateSheet() {
+    final amount = double.tryParse(_amountController.text) ?? 0.0;
+
+    final Map<String, double> customAmounts = {};
+    final Map<String, double> customPercentages = {};
+
+    if (_splitType == SplitType.custom) {
+      for (var id in _selectedMemberIds) {
+        customAmounts[id] =
+            double.tryParse(_customAmountControllers[id]?.text ?? '0') ?? 0.0;
+        customPercentages[id] = _customPercentages[id] ?? 0.0;
+      }
+    }
+
+    final formData = ExpenseFormData(
+      groupId: widget.groupId,
+      payerId: _payerMemberId,
+      description: _noteController.text,
+      amount: amount,
+      currencyCode: _isDifferentCurrency
+          ? (_originalCurrencyCode)
+          : (ref
+                    .read(groupStreamProvider(widget.groupId))
+                    .value
+                    ?.currencyCode ??
+                'USD'),
+      splitType: _splitType,
+      customSplitMode: _customSplitMode,
+      participantIds: _selectedMemberIds.toList(),
+      tagIds: _selectedTagIds.toList(),
+      customAmounts: customAmounts.isNotEmpty ? customAmounts : null,
+      customPercentages: customPercentages.isNotEmpty
+          ? customPercentages
+          : null,
+    );
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) =>
+          SaveAsTemplateSheet(groupId: widget.groupId, initialData: formData),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final membersAsync = ref.watch(membersByGroupProvider(widget.groupId));
@@ -629,6 +677,28 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                   tooltip: 'Save',
                 ),
               ),
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'save_template') {
+                    _showSaveTemplateSheet();
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'save_template',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.save_as,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text('Save as Template'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ],
         ),
@@ -641,10 +711,88 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
             }
 
             if (!_isInitialized && !isEdit) {
-              // Default to first member as payer and all members as participants
-              _payerMemberId ??= members.first.id;
-              if (_selectedMemberIds.isEmpty) {
-                _selectedMemberIds.addAll(members.map((m) => m.id));
+              if (widget.initialTemplate != null) {
+                final t = widget.initialTemplate!;
+                _noteController.text = t.description ?? '';
+                if (t.hasFixedAmount) {
+                  _amountController.text = MoneyUtils.fromMinorUnits(
+                    t.amountMinor!,
+                  ).toStringAsFixed(2);
+                }
+
+                _payerMemberId = t.payerId.isEmpty
+                    ? members.first.id
+                    : t.payerId;
+
+                switch (t.splitType) {
+                  case template_model.SplitType.equal:
+                    _splitType = SplitType.equal;
+                    break;
+                  case template_model.SplitType.custom:
+                    _splitType = SplitType.custom;
+                    _customSplitMode = CustomSplitMode.amount;
+                    break;
+                  case template_model.SplitType.percentage:
+                    _splitType = SplitType.custom;
+                    _customSplitMode = CustomSplitMode.percentage;
+                    break;
+                }
+
+                _selectedMemberIds.clear();
+                if (t.participantData != null &&
+                    t.participantData!.isNotEmpty) {
+                  _selectedMemberIds.addAll(t.participantData!.keys);
+
+                  if (_splitType == SplitType.custom) {
+                    for (var entry in t.participantData!.entries) {
+                      if (_customSplitMode == CustomSplitMode.amount) {
+                        _customAmountControllers[entry.key] =
+                            TextEditingController(
+                              text: MoneyUtils.fromMinorUnits(
+                                entry.value,
+                              ).toStringAsFixed(2),
+                            );
+                      } else {
+                        // For percentage, stored value in participantData is not directly percentage
+                        // Logic: If we have fixed amount, calculate percentage.
+                        // If variable amount, we can't easily recover percentages unless we store them or assume equal ratios?
+                        // Wait, SaveAsTemplateSheet logic:
+                        // if splitType == custom (incl percentage), saves customAmounts (converted to minor).
+                        // So if stored as Percentage, stored values ARE the amounts at that time.
+                        // If we have a fixed amount in template, we can calculate % = (stored_amt / template_amt) * 100
+                        // If we have NO fixed amount, using stored absolute amounts to calculate % is risky if base is 0?
+                        // But wait, if amount is variable (null), then stored amounts are meaningless?
+                        // Actually, if amount is variable, we might have saved with 0 amount?
+                        // If saved with 0 amount, percentages would be 0/0.
+                        // Let's assume for now we restore amounts if we have them.
+                        _customAmountControllers[entry.key] =
+                            TextEditingController(
+                              text: MoneyUtils.fromMinorUnits(
+                                entry.value,
+                              ).toStringAsFixed(2),
+                            );
+                      }
+                    }
+                    if (_customSplitMode == CustomSplitMode.percentage &&
+                        t.hasFixedAmount) {
+                      _updatePercentagesFromAmounts();
+                    }
+                  }
+                } else {
+                  _selectedMemberIds.addAll(members.map((m) => m.id));
+                }
+
+                _selectedTagIds.addAll(t.tagIds);
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ref.read(templateRepositoryProvider).updateUsageCount(t.id);
+                });
+              } else {
+                // Default to first member as payer and all members as participants
+                _payerMemberId ??= members.first.id;
+                if (_selectedMemberIds.isEmpty) {
+                  _selectedMemberIds.addAll(members.map((m) => m.id));
+                }
               }
               _isInitialized = true;
             }

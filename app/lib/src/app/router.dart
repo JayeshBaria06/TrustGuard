@@ -11,6 +11,7 @@ import '../features/groups/presentation/group_overview_screen.dart';
 import '../features/groups/presentation/home_screen.dart';
 import '../features/groups/presentation/members_screen.dart';
 import '../features/sharing/presentation/scan_expense_screen.dart';
+import '../core/models/expense_template.dart';
 import '../features/transactions/presentation/add_expense_screen.dart';
 import '../features/transactions/presentation/add_transfer_screen.dart';
 import '../features/transactions/presentation/tags_screen.dart';
@@ -169,10 +170,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                       final id = state.pathParameters['id']!;
                       final txId = state.uri.queryParameters['txId'];
                       final scan = state.uri.queryParameters['scan'] == 'true';
+                      final template = state.extra as ExpenseTemplate?;
                       return AddExpenseScreen(
                         groupId: id,
                         transactionId: txId,
                         initialScan: scan,
+                        initialTemplate: template,
                       );
                     },
                   ).withTransition(TransitionType.sharedAxisHorizontal),

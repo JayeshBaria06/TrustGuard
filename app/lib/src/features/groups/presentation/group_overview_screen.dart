@@ -6,6 +6,7 @@ import '../../../app/providers.dart';
 import '../../../core/models/reminder_settings.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/speed_dial_fab.dart';
+import '../../templates/presentation/template_picker_sheet.dart';
 import '../../transactions/presentation/quick_add_expense_sheet.dart';
 import 'groups_providers.dart';
 
@@ -103,6 +104,26 @@ class GroupOverviewScreen extends ConsumerWidget {
                 icon: Icons.bolt,
                 label: l10n.quickAdd,
                 onPressed: showQuickAdd,
+              ),
+              SpeedDialItem(
+                icon: Icons.file_copy_outlined,
+                label: 'From Template',
+                onPressed: () {
+                  showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    builder: (context) => TemplatePickerSheet(
+                      groupId: group.id,
+                      onSelected: (template) {
+                        context.push(
+                          '/group/${group.id}/transactions/add-expense',
+                          extra: template,
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
               SpeedDialItem(
                 icon: Icons.receipt_long_outlined,

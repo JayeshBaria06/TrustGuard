@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trustguard/src/app/providers.dart';
 import 'package:trustguard/src/core/database/database.dart';
 import 'package:trustguard/src/features/transactions/presentation/add_expense_screen.dart';
+import 'package:trustguard/src/features/transactions/models/expense_form_data.dart';
 import 'package:uuid/uuid.dart';
 import '../../../helpers/localization_helper.dart';
 import '../../../helpers/shared_prefs_helper.dart';
