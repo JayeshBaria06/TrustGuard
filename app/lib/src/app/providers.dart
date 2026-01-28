@@ -30,6 +30,8 @@ import '../features/onboarding/models/onboarding_state.dart';
 import '../features/transactions/services/attachment_service.dart';
 import '../features/transactions/services/recurrence_service.dart';
 import '../features/transactions/services/amount_suggestion_service.dart';
+import '../features/budget/services/budget_service.dart';
+import '../core/models/budget_progress.dart';
 import '../core/services/coachmark_service.dart';
 
 /// Provider for the [AppDatabase] singleton.
@@ -320,4 +322,20 @@ final activeBudgetsProvider = StreamProvider.family<List<Budget>, String>((
 ) {
   final repo = ref.watch(budgetRepositoryProvider);
   return repo.watchActiveBudgets(groupId);
+});
+
+/// Provider for [BudgetService].
+final budgetServiceProvider = Provider<BudgetService>((ref) {
+  final budgetRepo = ref.watch(budgetRepositoryProvider);
+  final transactionRepo = ref.watch(transactionRepositoryProvider);
+  return BudgetService(budgetRepo, transactionRepo);
+});
+
+/// Provider for calculating progress for a specific budget.
+final budgetProgressProvider = FutureProvider.family<BudgetProgress, Budget>((
+  ref,
+  budget,
+) {
+  final service = ref.watch(budgetServiceProvider);
+  return service.getBudgetProgress(budget);
 });
