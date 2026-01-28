@@ -11,8 +11,11 @@ import '../features/groups/presentation/group_overview_screen.dart';
 import '../features/groups/presentation/home_screen.dart';
 import '../features/groups/presentation/members_screen.dart';
 import '../features/sharing/presentation/scan_expense_screen.dart';
+import '../features/budget/presentation/budget_settings_screen.dart';
+import '../core/models/budget.dart';
 import '../core/models/expense_template.dart';
 import '../features/transactions/presentation/add_expense_screen.dart';
+
 import '../features/transactions/presentation/add_transfer_screen.dart';
 import '../features/transactions/presentation/tags_screen.dart';
 import '../features/transactions/presentation/transaction_detail_screen.dart';
@@ -136,6 +139,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                   return ReminderSettingsScreen(groupId: id);
                 },
               ).withTransition(TransitionType.sharedAxisHorizontal),
+              GoRoute(
+                path: 'budget-settings',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  final budget = state.extra as Budget?;
+                  return BudgetSettingsScreen(groupId: id, budget: budget);
+                },
+              ).withTransition(TransitionType.sharedAxisHorizontal),
+
               GoRoute(
                 path: 'export',
                 builder: (context, state) {
