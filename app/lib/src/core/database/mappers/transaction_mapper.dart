@@ -23,6 +23,7 @@ class TransactionMapper {
       updatedAt: transaction.updatedAt,
       deletedAt: transaction.deletedAt,
       isRecurring: transaction.isRecurring,
+      sourceId: transaction.sourceId,
       expenseDetail: expenseDetail != null
           ? model.ExpenseDetail(
               payerMemberId: expenseDetail.payerMemberId,
@@ -65,6 +66,7 @@ class TransactionMapper {
       updatedAt: Value(domain.updatedAt),
       deletedAt: Value(domain.deletedAt),
       isRecurring: Value(domain.isRecurring),
+      sourceId: Value(domain.sourceId),
     );
   }
 

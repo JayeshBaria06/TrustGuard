@@ -22,6 +22,7 @@ abstract class Transaction with _$Transaction {
     ExpenseDetail? expenseDetail,
     TransferDetail? transferDetail,
     @Default(false) bool isRecurring,
+    String? sourceId,
     @Default([]) List<Tag> tags,
   }) = _Transaction;
 

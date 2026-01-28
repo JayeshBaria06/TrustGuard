@@ -16,6 +16,7 @@ class Transactions extends Table {
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
   BoolColumn get isRecurring => boolean().withDefault(const Constant(false))();
+  TextColumn get sourceId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

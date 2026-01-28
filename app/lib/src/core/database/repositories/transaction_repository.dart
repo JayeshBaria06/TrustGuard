@@ -36,6 +36,7 @@ abstract class TransactionRepository {
   Future<void> softDeleteTransaction(String id);
   Future<void> undoSoftDeleteTransaction(String id);
   Future<void> hardDeleteTransaction(String id);
+  Future<model.Transaction?> findBySourceId(String sourceId);
 }
 
 class DriftTransactionRepository implements TransactionRepository {
@@ -436,6 +437,49 @@ class DriftTransactionRepository implements TransactionRepository {
       )..where((t) => t.txId.equals(id))).go();
       await (_db.delete(_db.transactions)..where((t) => t.id.equals(id))).go();
     });
+  }
+
+  @override
+  Future<model.Transaction?> findBySourceId(String sourceId) async {
+    final query = _db.select(_db.transactions).join([
+      leftOuterJoin(
+        _db.expenseDetails,
+        _db.expenseDetails.txId.equalsExp(_db.transactions.id),
+      ),
+      leftOuterJoin(
+        _db.transferDetails,
+        _db.transferDetails.txId.equalsExp(_db.transactions.id),
+      ),
+    ])..where(_db.transactions.sourceId.equals(sourceId));
+
+    final row = await query.getSingleOrNull();
+    if (row == null) return null;
+
+    final tx = row.readTable(_db.transactions);
+    final expenseDetail = row.readTableOrNull(_db.expenseDetails);
+    final transferDetail = row.readTableOrNull(_db.transferDetails);
+
+    List<ExpenseParticipant>? participants;
+    if (expenseDetail != null) {
+      participants = await (_db.select(
+        _db.expenseParticipants,
+      )..where((t) => t.txId.equals(tx.id))).get();
+    }
+
+    final tags = await (_db.select(_db.tags).join([
+      innerJoin(
+        _db.transactionTags,
+        _db.transactionTags.tagId.equalsExp(_db.tags.id),
+      ),
+    ])..where(_db.transactionTags.txId.equals(tx.id))).get();
+
+    return TransactionMapper.toModel(
+      transaction: tx,
+      expenseDetail: expenseDetail,
+      participants: participants,
+      transferDetail: transferDetail,
+      tags: tags.map((r) => r.readTable(_db.tags)).toList(),
+    );
   }
 
   Future<List<model.Transaction>> _mapRowsToTransactions(

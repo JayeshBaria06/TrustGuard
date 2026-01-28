@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -64,6 +64,15 @@ class AppDatabase extends _$AppDatabase {
         if (from < 5) {
           await m.addColumn(members, members.orderIndex);
           await m.addColumn(tags, tags.orderIndex);
+        }
+        if (from < 6) {
+          await m.addColumn(transactions, transactions.sourceId);
+          await m.createIndex(
+            Index(
+              'transactions_source_id',
+              'CREATE INDEX IF NOT EXISTS transactions_source_id ON transactions (source_id)',
+            ),
+          );
         }
       },
       beforeOpen: (details) async {

@@ -192,5 +192,22 @@ void main() {
       );
       expect(activeTxsAfter, hasLength(1));
     });
+
+    test('findBySourceId returns transaction if found', () async {
+      final txWithSource = testExpense.copyWith(
+        id: 'tx-source',
+        sourceId: 'original-id-123',
+      );
+
+      await repository.createTransaction(txWithSource);
+
+      final found = await repository.findBySourceId('original-id-123');
+      expect(found, isNotNull);
+      expect(found!.id, equals('tx-source'));
+      expect(found.sourceId, equals('original-id-123'));
+
+      final notFound = await repository.findBySourceId('non-existent');
+      expect(notFound, isNull);
+    });
   });
 }

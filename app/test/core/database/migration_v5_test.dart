@@ -51,6 +51,19 @@ void main() {
           name TEXT NOT NULL COLLATE NOCASE
         );
       ''');
+      await db.customStatement('''
+        CREATE TABLE transactions (
+          id TEXT NOT NULL PRIMARY KEY,
+          group_id TEXT NOT NULL REFERENCES groups(id),
+          type TEXT NOT NULL,
+          occurred_at INTEGER NOT NULL,
+          note TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          deleted_at INTEGER,
+          is_recurring INTEGER NOT NULL DEFAULT 0
+        );
+      ''');
 
       // Insert data
       await db.customStatement(

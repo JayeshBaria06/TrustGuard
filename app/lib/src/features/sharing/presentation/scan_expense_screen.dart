@@ -82,6 +82,54 @@ class _ScanExpenseScreenState extends ConsumerState<ScanExpenseScreen>
 
     if (!mounted) return;
 
+    if (expense.sourceId != null) {
+      final existingTx = await ref
+          .read(transactionRepositoryProvider)
+          .findBySourceId(expense.sourceId!);
+
+      if (existingTx != null) {
+        if (!mounted) return;
+        final shouldProceed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Possible Duplicate'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'This expense seems to already exist in your records.',
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Existing: ${existingTx.note}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text('Date: ${existingTx.occurredAt.toString().split(' ')[0]}'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false), // Cancel
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true), // Import Anyway
+                child: const Text('Import Anyway'),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldProceed != true) {
+          if (mounted) {
+            await _controller.start();
+          }
+          return;
+        }
+      }
+    }
+
     final members = await ref.read(
       membersByGroupProvider(widget.groupId).future,
     );
@@ -274,14 +322,14 @@ class _ExpenseImportDialogState extends ConsumerState<_ExpenseImportDialog> {
       }).toList();
 
       final transaction = Transaction(
-        id: const Uuid()
-            .v4(), // or use widget.expense.sourceId if we want to track source
+        id: const Uuid().v4(),
         groupId: widget.groupId,
         type: TransactionType.expense,
         occurredAt: widget.expense.date,
         note: widget.expense.description,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        sourceId: widget.expense.sourceId,
         expenseDetail: ExpenseDetail(
           payerMemberId: payerId,
           totalAmountMinor: widget.expense.amountMinor,
