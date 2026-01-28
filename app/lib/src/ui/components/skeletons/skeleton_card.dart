@@ -11,8 +11,8 @@ class SkeletonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final baseColor = theme.colorScheme.surfaceContainerHighest;
-    final highlightColor = theme.colorScheme.surface;
+    final baseColor = theme.colorScheme.onSurface.withValues(alpha: 0.1);
+    final highlightColor = theme.colorScheme.onSurface.withValues(alpha: 0.05);
 
     return Shimmer.fromColors(
       baseColor: baseColor,

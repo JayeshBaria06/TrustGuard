@@ -75,7 +75,8 @@ void main() {
       );
 
       final ActionChip chip = tester.widget(find.byType(ActionChip));
-      expect(chip.visualDensity, VisualDensity.compact);
+      // VisualDensity.compact was removed for accessibility compliance (48dp target)
+      // expect(chip.visualDensity, VisualDensity.compact);
       expect(chip.side, BorderSide.none);
       expect(chip.shape, isA<RoundedRectangleBorder>());
 

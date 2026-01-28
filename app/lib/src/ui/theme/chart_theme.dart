@@ -14,7 +14,7 @@ class ChartTheme {
     Color(0xFFE91E63), // Pink
     Color(0xFF009688), // Teal
     Color(0xFFFFC107), // Amber
-    Color(0xFF9C27B0), // Purple
+    Color(0xFF795548), // Brown (was Purple)
   ];
 
   static List<Color> getChartColors(ThemeData theme) {

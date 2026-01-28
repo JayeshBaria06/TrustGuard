@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_colors_extension.dart';
 
 class AppTheme {
   // Spacing constants
@@ -21,8 +22,11 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(
         seedColor: _seedColor,
         brightness: Brightness.light,
+        // Ensure error is high contrast
+        error: const Color(0xFFB3261E),
       ),
       appBarTheme: const AppBarTheme(centerTitle: true),
+      extensions: [AppColorsExtension.light],
     );
   }
 
@@ -32,8 +36,11 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(
         seedColor: _seedColor,
         brightness: Brightness.dark,
+        // Ensure error is high contrast
+        error: const Color(0xFFF2B8B5),
       ),
       appBarTheme: const AppBarTheme(centerTitle: true),
+      extensions: [AppColorsExtension.dark],
     );
   }
 }

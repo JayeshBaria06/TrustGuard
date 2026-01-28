@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trustguard/src/ui/components/balance_progress_bar.dart';
 
+import 'package:trustguard/src/ui/theme/app_theme.dart';
+import 'package:trustguard/src/ui/theme/app_colors_extension.dart';
+
 void main() {
   String formatMoney(int amount, {String? currencyCode, String? locale}) {
     return '\$${(amount / 100).toStringAsFixed(2)}';
@@ -9,6 +12,7 @@ void main() {
 
   Widget wrap(Widget child) {
     return MaterialApp(
+      theme: AppTheme.lightTheme,
       home: Scaffold(
         body: Center(child: SizedBox(width: 200, child: child)),
       ),
@@ -38,7 +42,8 @@ void main() {
         (widget) =>
             widget is AnimatedContainer &&
             widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).color == Colors.green,
+            (widget.decoration as BoxDecoration).color ==
+                AppColorsExtension.light.success,
       );
       expect(greenContainer, findsOneWidget);
 
@@ -66,7 +71,8 @@ void main() {
         (widget) =>
             widget is AnimatedContainer &&
             widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).color == Colors.red,
+            (widget.decoration as BoxDecoration).color ==
+                AppTheme.lightTheme.colorScheme.error,
       );
       expect(redContainer, findsOneWidget);
 
@@ -93,13 +99,15 @@ void main() {
         (widget) =>
             widget is AnimatedContainer &&
             widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).color == Colors.red,
+            (widget.decoration as BoxDecoration).color ==
+                AppTheme.lightTheme.colorScheme.error,
       );
       final greenContainer = find.byWidgetPredicate(
         (widget) =>
             widget is AnimatedContainer &&
             widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).color == Colors.green,
+            (widget.decoration as BoxDecoration).color ==
+                AppColorsExtension.light.success,
       );
 
       expect(tester.renderObject<RenderBox>(redContainer).size.width, 0.0);
@@ -138,7 +146,8 @@ void main() {
         (widget) =>
             widget is AnimatedContainer &&
             widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).color == Colors.green,
+            (widget.decoration as BoxDecoration).color ==
+                AppColorsExtension.light.success,
       );
 
       // Should be halfWidth (100)

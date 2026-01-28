@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../animations/animation_config.dart';
+import '../theme/app_colors_extension.dart';
 
 /// A bidirectional progress bar that visualizes a balance amount relative to a maximum.
 /// Positive amounts extend to the right (green), negative to the left (red).
@@ -25,6 +26,11 @@ class BalanceProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appColors = theme.extension<AppColorsExtension>();
+    // Fallback to theme.colorScheme.error for negative, and standard green for positive if extension missing
+    final successColor = appColors?.success ?? const Color(0xFF1B5E20);
+    final errorColor = theme.colorScheme.error;
+
     final isPositive = amount > 0;
     final isNegative = amount < 0;
 
@@ -34,9 +40,9 @@ class BalanceProgressBar extends StatelessWidget {
     final widthFactor = (absAmount / effectiveMax).clamp(0.0, 1.0);
 
     final color = isPositive
-        ? Colors.green
+        ? successColor
         : isNegative
-        ? Colors.red
+        ? errorColor
         : theme.disabledColor;
 
     final formattedAmount = formatMoney(absAmount, currencyCode: currencyCode);
@@ -100,7 +106,7 @@ class BalanceProgressBar extends StatelessWidget {
                       width: isNegative ? barWidth : 0,
                       height: height,
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: errorColor,
                         borderRadius: BorderRadius.horizontal(
                           left: Radius.circular(height / 2),
                         ),
@@ -116,7 +122,7 @@ class BalanceProgressBar extends StatelessWidget {
                       width: isPositive ? barWidth : 0,
                       height: height,
                       decoration: BoxDecoration(
-                        color: Colors.green,
+                        color: successColor,
                         borderRadius: BorderRadius.horizontal(
                           right: Radius.circular(height / 2),
                         ),

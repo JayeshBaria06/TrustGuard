@@ -9,9 +9,9 @@ class SkeletonListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Use surfaceContainerHighest for base and surface for highlight to create a subtle pulse
-    final baseColor = theme.colorScheme.surfaceContainerHighest;
-    final highlightColor = theme.colorScheme.surface;
+    // Use onSurface with alpha for subtle, theme-adaptive skeletons
+    final baseColor = theme.colorScheme.onSurface.withValues(alpha: 0.1);
+    final highlightColor = theme.colorScheme.onSurface.withValues(alpha: 0.05);
 
     return Shimmer.fromColors(
       baseColor: baseColor,
