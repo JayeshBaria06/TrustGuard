@@ -45,6 +45,15 @@ class GroupOverviewScreen extends ConsumerWidget {
             title: Text(group.name),
             actions: [
               IconButton(
+                icon: const Icon(Icons.qr_code_scanner),
+                onPressed: () => context.push('/group/${group.id}/scan'),
+                tooltip: 'Scan QR Code',
+                constraints: const BoxConstraints(
+                  minWidth: AppTheme.minTouchTarget,
+                  minHeight: AppTheme.minTouchTarget,
+                ),
+              ),
+              IconButton(
                 icon: const Icon(Icons.edit_outlined),
                 onPressed: () => context.push('/group/${group.id}/edit'),
                 tooltip: 'Edit Group',
@@ -107,6 +116,11 @@ class GroupOverviewScreen extends ConsumerWidget {
                 onPressed: () => context.push(
                   '/group/${group.id}/transactions/add-transfer',
                 ),
+              ),
+              SpeedDialItem(
+                icon: Icons.qr_code_scanner,
+                label: 'Scan QR Code',
+                onPressed: () => context.push('/group/${group.id}/scan'),
               ),
               SpeedDialItem(
                 icon: Icons.document_scanner_outlined,

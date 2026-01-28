@@ -28,6 +28,7 @@ import '../models/paginated_transactions_state.dart';
 import '../utils/transaction_grouper.dart';
 import 'widgets/date_group_header.dart';
 import '../../../ui/animations/staggered_list_animation.dart';
+import 'package:trustguard/src/features/sharing/presentation/share_expense_sheet.dart';
 import '../../../core/services/undoable_action_service.dart';
 import '../../../ui/components/undo_snackbar.dart';
 import '../../../ui/components/speed_dial_fab.dart';
@@ -439,6 +440,11 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen>
               ),
             ),
             SpeedDialItem(
+              icon: Icons.qr_code_scanner,
+              label: 'Scan QR Code',
+              onPressed: () => context.push('/group/${widget.groupId}/scan'),
+            ),
+            SpeedDialItem(
               icon: Icons.document_scanner_outlined,
               label: context.l10n.scanReceipt,
               onPressed: () => context.push(
@@ -669,6 +675,21 @@ class _TransactionListItem extends ConsumerWidget {
           startActionPane: ActionPane(
             motion: const DrawerMotion(),
             children: [
+              SlidableAction(
+                onPressed: (context) {
+                  HapticsService.lightTap();
+                  showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) =>
+                        ShareExpenseSheet(transaction: transaction),
+                  );
+                },
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                icon: Icons.qr_code,
+                label: 'Share',
+              ),
               SlidableAction(
                 onPressed: (context) {
                   HapticsService.lightTap();

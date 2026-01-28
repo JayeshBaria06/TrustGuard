@@ -13,6 +13,7 @@ import '../../groups/presentation/groups_providers.dart';
 import '../services/attachment_service.dart';
 import 'transactions_providers.dart';
 import '../providers/paginated_transactions_provider.dart';
+import 'package:trustguard/src/features/sharing/presentation/share_expense_sheet.dart';
 import '../../../core/services/undoable_action_service.dart';
 import '../../../ui/components/undo_snackbar.dart';
 import '../../../core/utils/haptics.dart';
@@ -42,23 +43,43 @@ class TransactionDetailScreen extends ConsumerWidget {
         actions: [
           transactionAsync.when(
             data: (tx) => tx != null
-                ? IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () {
-                      if (tx.type == TransactionType.expense) {
-                        context.push(
-                          '/group/$groupId/transactions/add-expense?txId=$transactionId',
-                        );
-                      } else {
-                        context.push(
-                          '/group/$groupId/transactions/add-transfer?txId=$transactionId',
-                        );
-                      }
-                    },
-                    constraints: const BoxConstraints(
-                      minWidth: AppTheme.minTouchTarget,
-                      minHeight: AppTheme.minTouchTarget,
-                    ),
+                ? Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.qr_code),
+                        tooltip: 'Share Expense',
+                        onPressed: () {
+                          showModalBottomSheet<void>(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) =>
+                                ShareExpenseSheet(transaction: tx),
+                          );
+                        },
+                        constraints: const BoxConstraints(
+                          minWidth: AppTheme.minTouchTarget,
+                          minHeight: AppTheme.minTouchTarget,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          if (tx.type == TransactionType.expense) {
+                            context.push(
+                              '/group/$groupId/transactions/add-expense?txId=$transactionId',
+                            );
+                          } else {
+                            context.push(
+                              '/group/$groupId/transactions/add-transfer?txId=$transactionId',
+                            );
+                          }
+                        },
+                        constraints: const BoxConstraints(
+                          minWidth: AppTheme.minTouchTarget,
+                          minHeight: AppTheme.minTouchTarget,
+                        ),
+                      ),
+                    ],
                   )
                 : const SizedBox.shrink(),
             loading: () => const SizedBox.shrink(),
