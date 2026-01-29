@@ -8,9 +8,9 @@ import '../services/dashboard_service.dart';
 final Provider<DashboardService> dashboardServiceProvider =
     Provider<DashboardService>((ref) {
       return DashboardService(
-        groupRepository: ref.watch(groupRepositoryProvider),
-        memberRepository: ref.watch(memberRepositoryProvider),
-        transactionRepository: ref.watch(transactionRepositoryProvider),
+        groupRepository: ref.read(groupRepositoryProvider),
+        memberRepository: ref.read(memberRepositoryProvider),
+        transactionRepository: ref.read(transactionRepositoryProvider),
       );
     });
 

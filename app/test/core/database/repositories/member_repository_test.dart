@@ -37,6 +37,8 @@ void main() {
       groupId: 'group-1',
       displayName: 'Test Member',
       createdAt: DateTime(2026, 1, 1),
+      avatarPath: 'path/to/avatar.jpg',
+      avatarColor: 0xFFF44336,
     );
 
     test('createMember and getMemberById', () async {
@@ -67,6 +69,20 @@ void main() {
       await repository.updateMember(updatedMember);
       final member = await repository.getMemberById('member-1');
       expect(member?.displayName, equals('Updated Name'));
+    });
+
+    test('updateMemberAvatar', () async {
+      await repository.createMember(testMember.copyWith(avatarPath: null));
+
+      await repository.updateMemberAvatar(
+        'member-1',
+        'new/path.jpg',
+        0xFF00FF00,
+      );
+      final member = await repository.getMemberById('member-1');
+
+      expect(member?.avatarPath, equals('new/path.jpg'));
+      expect(member?.avatarColor, equals(0xFF00FF00));
     });
 
     test('soft delete and undo soft delete member', () async {

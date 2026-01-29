@@ -19,6 +19,7 @@ void main() {
       updatedAt: now,
       deletedAt: null,
       isRecurring: false,
+      sourceId: 'source1',
     );
 
     const expenseDetailData = ExpenseDetail(
@@ -51,6 +52,7 @@ void main() {
 
       expect(result.id, equals(transactionData.id));
       expect(result.type, equals(model.TransactionType.expense));
+      expect(result.sourceId, equals(transactionData.sourceId));
       expect(result.expenseDetail?.totalAmountMinor, equals(1000));
       expect(result.expenseDetail?.participants.length, equals(2));
       expect(result.expenseDetail?.participants[0].memberId, equals('m1'));
@@ -100,12 +102,14 @@ void main() {
           note: 'Dinner',
           createdAt: now,
           updatedAt: now,
+          sourceId: 'source1',
         );
 
         final result = TransactionMapper.toTransactionCompanion(domain);
         expect(result.id.value, equals(domain.id));
         expect(result.type.value, equals(domain.type));
         expect(result.note.value, equals(domain.note));
+        expect(result.sourceId.value, equals(domain.sourceId));
       },
     );
 
