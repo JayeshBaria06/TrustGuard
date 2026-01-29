@@ -163,5 +163,58 @@ Power users on Windows, macOS, and Linux can use keyboard shortcuts for faster n
 - **Ctrl/Cmd + S:** Save form
 - **Escape:** Cancel/Close current screen
 
+### Sharing Expenses with QR Codes
+TrustGuard makes it easy to share expenses with friends without an internet connection using QR codes.
+1. **To Share:** Open any existing transaction and tap the **QR Code** icon in the top right.
+2. **Scan and Import:**
+   - In your group, tap the **Scan** icon in the top bar or use the **Scan Expense** action in the Speed Dial.
+   - Point your camera at your friend's QR code.
+   - TrustGuard will decode the expense and show a preview.
+3. **Member Mapping:** If the names in the shared expense don't match your group exactly, TrustGuard will ask you to map them to your existing members or create new ones.
+4. **Duplicate Prevention:** If you've already imported an expense, TrustGuard will warn you to prevent duplicates.
+
+### Using Expense Templates
+For expenses you record frequently, you can create templates to pre-fill the form.
+1. **Create Template:**
+   - While filling out an expense, tap the **Save as Template** icon in the top bar.
+   - Give your template a name and choose if you want to save the specific amount or prompt for it each time.
+2. **Use Template:**
+   - Tap the **From Template** icon in the Speed Dial.
+   - Select your template from the list. The form will be automatically populated with your saved description, payer, split, and tags.
+3. **Manage Templates:** Swipe left on any template in the picker to delete it.
+
+### Budget Tracking
+Stay on top of your spending by setting periodic budgets for your groups.
+1. **Set Up Budget:**
+   - From the Group Overview, tap the **Settings** (gear) icon and choose **Budgets**.
+   - Tap **Add Budget** and set your limit, period (Weekly, Monthly, or Yearly), and start date.
+2. **Category Budgets:** You can restrict a budget to specific **Tags** (e.g., a "Grocery" budget).
+3. **Alerts:** Enable **Spending Alerts** to receive a notification when you reach 80% or 100% of your budget.
+4. **Visual Progress:** Your active budgets appear as progress cards in the group overview, color-coded from green (safe) to red (exceeded).
+
+### Personalizing Members with Avatars
+Give your group members a visual identity with custom avatars.
+1. Go to the **Members** screen and tap a member.
+2. Tap the avatar to open the **Picker**.
+3. You can:
+   - Choose a **Preset Color** with their initials.
+   - Take a **Photo** with your camera.
+   - Select an **Image** from your gallery.
+*Avatars are compressed and stored locally on your device to respect your privacy.*
+
+### Home Screen Widgets
+View your balances at a glance without even opening the app.
+1. Add the **TrustGuard Balance** widget to your home screen (standard iOS/Android widget process).
+2. The widget displays:
+   - Your total **Credit** or **Debt**.
+   - A summary of your **Top Groups** (Medium/Large sizes).
+3. Tap the widget to jump directly into the app.
+
+### Accessibility Features
+TrustGuard is designed to be usable by everyone.
+- **High Contrast Mode:** Go to **Settings > Appearance** and toggle **High Contrast** for pure black and white surfaces.
+- **Screen Reader Support:** All buttons and information are labeled for TalkBack (Android) and VoiceOver (iOS).
+- **Large Touch Targets:** Interactive elements are sized to at least 48dp for easier tapping.
+
 ---
 *Need more help? Check our GitHub repository for community support and updates.*

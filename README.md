@@ -7,12 +7,18 @@ TrustGuard is an offline-first group expense and settlement ledger Flutter app. 
 - **Offline-First**: All data is stored locally on your device using SQLite (Drift). No cloud account needed.
 - **Dashboard**: Global balance overview and recent activity across all active groups with animated rolling numbers.
 - **Spending Analytics**: Visualize spending by category and member with interactive pie charts and trend lines.
-- **Theme Customization**: Full support for Light, Dark, and System theme modes.
+- **Theme Customization**: Full support for Light, Dark, and System theme modes. Now includes a **High-Contrast** mode for improved accessibility.
+- **Accessibility Compliance**: Comprehensive support for screen readers (TalkBack/VoiceOver), logical focus order, and 48dp minimum touch targets.
 - **Privacy Focused**: Your financial data never leaves your device (unless you explicitly export it).
 - **Group Management**: Create multiple groups for different trips, roommates, or events.
 - **Flexible Expenses**: Split expenses equally or with custom amounts with real-time visual preview. Now supports **percentage-based** splits with tactile slider controls.
+- **Expense Templates**: Create reusable templates for common expenses to save time on data entry.
+- **Budget Tracking**: Set periodic budgets (weekly, monthly, yearly) for groups or specific categories with automated spending alerts.
+- **QR Code Sharing**: Share expenses and transfers device-to-device without internet via compressed QR codes.
 - **Receipt OCR**: Automatically extract amount, date, and merchant from receipts using on-device machine learning.
 - **Recurring Transactions**: Automate periodic expenses and transfers with flexible schedules.
+- **Member Avatars**: Personalize members with custom photos, camera captures, or preset color initials.
+- **Home Screen Widgets**: View your balances and top groups at a glance on iOS and Android.
 - **Modern Interactions**: Avatar-based member selection, swipe-to-action gestures, drag-to-reorder members/tags, and glassmorphism sticky date headers.
 - **Motion Design**: Smooth navigation with container transforms, staggered list animations, and celebration effects.
 - **Speed Dial FAB**: Quick access to common actions and a compact **Quick Add** sheet for rapid expense entry.

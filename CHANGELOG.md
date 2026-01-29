@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-01-30
+
+### Added
+- **Accessibility Compliance**:
+  - Comprehensive **Semantics** labels and hints for all core components.
+  - Standardized all interactive elements to **48dp minimum touch targets**.
+  - Optimized color contrast ratios for WCAG AA compliance.
+  - New **High-Contrast Theme** toggle for severe visual impairments.
+- **QR Code Sharing**:
+  - Offline device-to-device expense sharing via compressed QR codes (Gzip+Base64).
+  - Secure 'TG:' prefix for app identification and versioning.
+  - Intelligent member mapping and **duplicate detection** on import.
+- **Expense Templates**:
+  - Save common expense configurations as reusable templates.
+  - **Quick Entry** from Speed Dial with automatic form pre-filling.
+  - Support for fixed or variable amounts and persistent template ordering.
+- **Budget Tracking**:
+  - Periodic budgets (Weekly, Monthly, Yearly) with custom start dates.
+  - **Category-specific budgets** using tag filters.
+  - Automated **Spending Alerts** (80% and 100% thresholds) via local notifications.
+  - Color-coded progress cards in Group Overview.
+- **Member Avatars**:
+  - Visual identification with custom images, camera capture, or preset colors.
+  - On-device image processing (256x256, JPEG 80%) to maintain app size.
+  - Integrated avatars in list views, selectors, and detail screens.
+- **Home Screen Widgets**:
+  - **Balance Overview** widget for Android and iOS.
+  - Supports multiple sizes (Small, Medium, Large) with **Top Groups** list.
+  - Theme-aware design and direct deep linking into the app.
+- **Robustness**:
+  - Incremented database schema to version 9.
+  - Added 40+ new tests covering QR sharing, templates, budgets, and avatars.
+  - New modular integration test suite for v1.5 features.
+
+### Changed
+- Updated `DashboardService` to support cross-group balance aggregation for widgets.
+- Enhanced `NotificationService` with immediate notification support for alerts.
+- Refactored `MemberAvatarSelector` for better visual feedback.
+
+### Fixed
+- Fixed Riverpod circular dependency in `transactionRepositoryProvider`.
+- Resolved layout issues in `SaveAsTemplateSheet` on small devices.
+- Improved database migration logic to handle sequential version upgrades more reliably.
+
 ## [1.4.0] - 2026-01-30
 
 ### Added
