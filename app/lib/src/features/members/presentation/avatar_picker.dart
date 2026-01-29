@@ -88,124 +88,126 @@ class _AvatarPickerState extends ConsumerState<AvatarPicker> {
     final theme = Theme.of(context);
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.space16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Choose Avatar',
-              style: theme.textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.space16),
-            // Preview
-            Center(
-              child: Semantics(
-                label: 'Avatar preview',
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: _currentColor != null
-                          ? Color(_currentColor!)
-                          : theme.colorScheme.surfaceContainerHighest,
-                      backgroundImage: _currentPath != null
-                          ? FileImage(File(_currentPath!))
-                          : null,
-                      child: _currentPath == null && _currentColor == null
-                          ? const Icon(Icons.person, size: 50)
-                          : null,
-                    ),
-                    if (_isProcessing) const CircularProgressIndicator(),
-                  ],
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.space16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Choose Avatar',
+                style: theme.textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppTheme.space16),
+              // Preview
+              Center(
+                child: Semantics(
+                  label: 'Avatar preview',
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: _currentColor != null
+                            ? Color(_currentColor!)
+                            : theme.colorScheme.surfaceContainerHighest,
+                        backgroundImage: _currentPath != null
+                            ? FileImage(File(_currentPath!))
+                            : null,
+                        child: _currentPath == null && _currentColor == null
+                            ? const Icon(Icons.person, size: 50)
+                            : null,
+                      ),
+                      if (_isProcessing) const CircularProgressIndicator(),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: AppTheme.space24),
-            // Image source actions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _ActionButton(
-                  icon: Icons.camera_alt_outlined,
-                  label: 'Camera',
-                  onPressed: () => _pickImage(ImageSource.camera),
-                ),
-                _ActionButton(
-                  icon: Icons.photo_library_outlined,
-                  label: 'Gallery',
-                  onPressed: () => _pickImage(ImageSource.gallery),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppTheme.space24),
-            Text(
-              'Or select a color',
-              style: theme.textTheme.titleSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.space16),
-            // Color Grid
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
-                crossAxisSpacing: AppTheme.space12,
-                mainAxisSpacing: AppTheme.space12,
+              const SizedBox(height: AppTheme.space24),
+              // Image source actions
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _ActionButton(
+                    icon: Icons.camera_alt_outlined,
+                    label: 'Camera',
+                    onPressed: () => _pickImage(ImageSource.camera),
+                  ),
+                  _ActionButton(
+                    icon: Icons.photo_library_outlined,
+                    label: 'Gallery',
+                    onPressed: () => _pickImage(ImageSource.gallery),
+                  ),
+                ],
               ),
-              itemCount: Member.presetColors.length,
-              itemBuilder: (context, index) {
-                final colorValue = Member.presetColors[index];
-                final isSelected = _currentColor == colorValue;
-                return Semantics(
-                  button: true,
-                  label: 'Preset color ${index + 1}',
-                  selected: isSelected,
-                  child: GestureDetector(
-                    onTap: () => _selectColor(colorValue),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Color(colorValue),
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(
-                                color: theme.colorScheme.primary,
-                                width: 3,
+              const SizedBox(height: AppTheme.space24),
+              Text(
+                'Or select a color',
+                style: theme.textTheme.titleSmall,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppTheme.space16),
+              // Color Grid
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 5,
+                  crossAxisSpacing: AppTheme.space12,
+                  mainAxisSpacing: AppTheme.space12,
+                ),
+                itemCount: Member.presetColors.length,
+                itemBuilder: (context, index) {
+                  final colorValue = Member.presetColors[index];
+                  final isSelected = _currentColor == colorValue;
+                  return Semantics(
+                    button: true,
+                    label: 'Preset color ${index + 1}',
+                    selected: isSelected,
+                    child: GestureDetector(
+                      onTap: () => _selectColor(colorValue),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Color(colorValue),
+                          shape: BoxShape.circle,
+                          border: isSelected
+                              ? Border.all(
+                                  color: theme.colorScheme.primary,
+                                  width: 3,
+                                )
+                              : null,
+                        ),
+                        child: isSelected
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.white, // Ensure visibility
                               )
                             : null,
                       ),
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.white, // Ensure visibility
-                            )
-                          : null,
                     ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: AppTheme.space16),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _currentPath = null;
-                  _currentColor = null;
-                });
-                widget.onSelectionChanged(null, null);
-              },
-              child: const Text('Clear Avatar'),
-            ),
-            const SizedBox(height: AppTheme.space8),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Done'),
-            ),
-          ],
+                  );
+                },
+              ),
+              const SizedBox(height: AppTheme.space16),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _currentPath = null;
+                    _currentColor = null;
+                  });
+                  widget.onSelectionChanged(null, null);
+                },
+                child: const Text('Clear Avatar'),
+              ),
+              const SizedBox(height: AppTheme.space8),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Done'),
+              ),
+            ],
+          ),
         ),
       ),
     );

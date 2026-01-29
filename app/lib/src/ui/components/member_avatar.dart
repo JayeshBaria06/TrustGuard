@@ -87,18 +87,23 @@ class MemberAvatar extends StatelessWidget {
   }
 
   Widget _buildFallback(Color backgroundColor, Color textColor) {
+    final initials = _getInitials(member.displayName);
     return CircleAvatar(
       radius: radius,
       backgroundColor: backgroundColor,
-      child: Text(
-        _getInitials(member.displayName),
-        style:
-            textStyle ??
-            TextStyle(
-              color: textColor,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      child: initials.isEmpty
+          ? Icon(Icons.person, color: textColor, size: radius)
+          : Text(
+              initials,
+              style:
+                  textStyle ??
+                  TextStyle(
+                    color: textColor,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
             ),
-      ),
     );
   }
 }
