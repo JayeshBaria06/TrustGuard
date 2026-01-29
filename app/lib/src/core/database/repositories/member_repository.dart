@@ -19,6 +19,8 @@ abstract class MemberRepository {
   Future<void> softDeleteMember(String id);
   Future<void> undoSoftDeleteMember(String id);
   Future<void> updateMemberOrder(String groupId, List<String> memberIds);
+  Future<void> updateMemberAvatar(String id, String? path, int? color);
+  Future<void> hardDeleteMember(String id);
 }
 
 class DriftMemberRepository implements MemberRepository {
@@ -113,5 +115,17 @@ class DriftMemberRepository implements MemberRepository {
             .write(MembersCompanion(orderIndex: Value(i)));
       }
     });
+  }
+
+  @override
+  Future<void> updateMemberAvatar(String id, String? path, int? color) async {
+    await (_db.update(_db.members)..where((t) => t.id.equals(id))).write(
+      MembersCompanion(avatarPath: Value(path), avatarColor: Value(color)),
+    );
+  }
+
+  @override
+  Future<void> hardDeleteMember(String id) async {
+    await (_db.delete(_db.members)..where((t) => t.id.equals(id))).go();
   }
 }

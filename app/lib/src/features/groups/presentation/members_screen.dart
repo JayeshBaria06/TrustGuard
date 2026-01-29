@@ -9,6 +9,7 @@ import '../../../ui/components/undo_snackbar.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/empty_state.dart';
 import '../../../ui/components/member_avatar.dart';
+import '../../members/presentation/avatar_picker.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../generated/app_localizations.dart';
 import 'groups_providers.dart';
@@ -102,6 +103,49 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     _scheduleMemberRemove(member);
   }
 
+  Future<void> _hardDeleteMember(Member member) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Permanently Remove?'),
+        content: Text(
+          'This will permanently delete ${member.displayName} and their avatar. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(AppLocalizations.of(context)!.remove),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    final repository = ref.read(memberRepositoryProvider);
+    final avatarService = ref.read(avatarServiceProvider);
+
+    try {
+      await avatarService.deleteAvatar(member.id);
+      await repository.hardDeleteMember(member.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${member.displayName} permanently removed')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error deleting member: $e')));
+      }
+    }
+  }
+
   void _scheduleMemberRemove(Member member) {
     final undoService = ref.read(undoableActionProvider);
     final repository = ref.read(memberRepositoryProvider);
@@ -155,6 +199,25 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         ).showSnackBar(SnackBar(content: Text('Error restoring member: $e')));
       }
     }
+  }
+
+  Future<void> _editAvatar(Member member) async {
+    HapticsService.lightTap();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => AvatarPicker(
+        memberId: member.id,
+        initialAvatarPath: member.avatarPath,
+        initialAvatarColor: member.avatarColor,
+        onSelectionChanged: (path, color) async {
+          await ref
+              .read(memberRepositoryProvider)
+              .updateMemberAvatar(member.id, path, color);
+          // Provider will refresh due to repository update and watch
+        },
+      ),
+    );
   }
 
   Future<void> _onReorder(int oldIndex, int newIndex) async {
@@ -358,7 +421,13 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
 
     return ListTile(
       key: ValueKey(member.id),
-      leading: MemberAvatar(member: member, radius: 20),
+      leading: GestureDetector(
+        onTap: isRemoved ? null : () => _editAvatar(member),
+        child: MouseRegion(
+          cursor: isRemoved ? MouseCursor.defer : SystemMouseCursors.click,
+          child: MemberAvatar(member: member, radius: 20),
+        ),
+      ),
       title: Text(
         member.displayName,
         style: TextStyle(
@@ -369,7 +438,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (isRemoved)
+          if (isRemoved) ...[
             IconButton(
               icon: const Icon(Icons.restore),
               onPressed: () => _restoreMember(member),
@@ -378,8 +447,17 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                 minWidth: AppTheme.minTouchTarget,
                 minHeight: AppTheme.minTouchTarget,
               ),
-            )
-          else
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_forever, color: Colors.red),
+              onPressed: () => _hardDeleteMember(member),
+              tooltip: 'Permanently Remove',
+              constraints: const BoxConstraints(
+                minWidth: AppTheme.minTouchTarget,
+                minHeight: AppTheme.minTouchTarget,
+              ),
+            ),
+          ] else
             IconButton(
               icon: const Icon(Icons.person_remove_outlined),
               onPressed: () => _removeMember(member),
