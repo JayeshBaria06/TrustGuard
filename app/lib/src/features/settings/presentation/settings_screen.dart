@@ -28,7 +28,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final notificationsEnabled = ref.watch(notificationPermissionProvider);
     final rounding = ref.watch(roundingProvider);
     final useCustomKeypad = ref.watch(customKeypadProvider);
+    final isWidgetUpdateEnabled = ref.watch(widgetUpdateProvider);
     final logsAsync = ref.watch(debugLogsProvider);
+
     final hasLogs = logsAsync.valueOrNull?.isNotEmpty ?? false;
     final storageUsageAsync = ref.watch(attachmentStorageUsageProvider);
 
@@ -189,8 +191,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const Divider(),
           _buildSectionHeader(context, context.l10n.data),
+          SwitchListTile(
+            secondary: const Icon(Icons.widgets_outlined),
+            title: const Text('Home Screen Widgets'),
+            subtitle: const Text('Update widgets when data changes'),
+            value: isWidgetUpdateEnabled,
+            onChanged: (value) =>
+                ref.read(widgetUpdateProvider.notifier).setEnabled(value),
+          ),
           ListTile(
             leading: const Icon(Icons.storage_outlined),
+
             title: Text(context.l10n.attachmentStorage),
             subtitle: storageUsageAsync.when(
               data: (size) => Text(

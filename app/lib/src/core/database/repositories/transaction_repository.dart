@@ -42,8 +42,13 @@ abstract class TransactionRepository {
 class DriftTransactionRepository implements TransactionRepository {
   final AppDatabase _db;
   final AttachmentService _attachmentService;
+  final void Function()? onChanged;
 
-  DriftTransactionRepository(this._db, this._attachmentService);
+  DriftTransactionRepository(
+    this._db,
+    this._attachmentService, {
+    this.onChanged,
+  });
 
   @override
   Future<List<model.Transaction>> getAllTransactions() async {
@@ -328,6 +333,7 @@ class DriftTransactionRepository implements TransactionRepository {
         });
       }
     });
+    onChanged?.call();
   }
 
   @override
@@ -396,6 +402,7 @@ class DriftTransactionRepository implements TransactionRepository {
         });
       }
     });
+    onChanged?.call();
   }
 
   @override
@@ -406,6 +413,7 @@ class DriftTransactionRepository implements TransactionRepository {
         updatedAt: Value(DateTime.now()),
       ),
     );
+    onChanged?.call();
   }
 
   @override
@@ -416,6 +424,7 @@ class DriftTransactionRepository implements TransactionRepository {
         updatedAt: Value(DateTime.now()),
       ),
     );
+    onChanged?.call();
   }
 
   @override
@@ -437,6 +446,7 @@ class DriftTransactionRepository implements TransactionRepository {
       )..where((t) => t.txId.equals(id))).go();
       await (_db.delete(_db.transactions)..where((t) => t.id.equals(id))).go();
     });
+    onChanged?.call();
   }
 
   @override

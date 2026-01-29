@@ -5,13 +5,14 @@ import '../models/global_balance_summary.dart';
 import '../services/dashboard_service.dart';
 
 /// Provider for [DashboardService].
-final dashboardServiceProvider = Provider<DashboardService>((ref) {
-  return DashboardService(
-    groupRepository: ref.watch(groupRepositoryProvider),
-    memberRepository: ref.watch(memberRepositoryProvider),
-    transactionRepository: ref.watch(transactionRepositoryProvider),
-  );
-});
+final Provider<DashboardService> dashboardServiceProvider =
+    Provider<DashboardService>((ref) {
+      return DashboardService(
+        groupRepository: ref.watch(groupRepositoryProvider),
+        memberRepository: ref.watch(memberRepositoryProvider),
+        transactionRepository: ref.watch(transactionRepositoryProvider),
+      );
+    });
 
 /// Provider for watching all transactions across all groups.
 final allTransactionsProvider = StreamProvider<List<Transaction>>((ref) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:home_widget/home_widget.dart';
 import '../../../core/utils/money.dart';
@@ -103,10 +104,26 @@ class WidgetDataService {
       // iOSName: _iosWidgetName,
     );
   }
+
+  Timer? _periodicTimer;
+
+  void schedulePeriodicUpdate(bool Function() isEnabled) {
+    _periodicTimer?.cancel();
+    _periodicTimer = Timer.periodic(const Duration(minutes: 30), (timer) async {
+      if (isEnabled()) {
+        await updateWidget();
+      }
+    });
+  }
+
+  void dispose() {
+    _periodicTimer?.cancel();
+  }
 }
 
-final widgetDataServiceProvider = Provider<WidgetDataService>((ref) {
-  return WidgetDataService(
-    dashboardService: ref.watch(dashboardServiceProvider),
-  );
-});
+final Provider<WidgetDataService> widgetDataServiceProvider =
+    Provider<WidgetDataService>((ref) {
+      return WidgetDataService(
+        dashboardService: ref.watch(dashboardServiceProvider),
+      );
+    });

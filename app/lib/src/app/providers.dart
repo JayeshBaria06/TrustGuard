@@ -34,6 +34,8 @@ import '../features/budget/services/budget_service.dart';
 import '../features/members/services/avatar_service.dart';
 import '../core/models/budget_progress.dart';
 
+import '../features/widgets/services/widget_data_service.dart';
+
 import '../core/services/coachmark_service.dart';
 
 /// Provider for the [AppDatabase] singleton.
@@ -94,7 +96,27 @@ final customKeypadProvider = NotifierProvider<CustomKeypadNotifier, bool>(
   () => CustomKeypadNotifier(),
 );
 
+/// Provider for widget update setting.
+class WidgetUpdateNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final service = ref.watch(settingsServiceProvider);
+    return service.isWidgetUpdateEnabled();
+  }
+
+  Future<void> setEnabled(bool value) async {
+    final service = ref.read(settingsServiceProvider);
+    await service.setWidgetUpdateEnabled(value);
+    state = value;
+  }
+}
+
+final widgetUpdateProvider = NotifierProvider<WidgetUpdateNotifier, bool>(
+  () => WidgetUpdateNotifier(),
+);
+
 /// Provider for formatting money based on rounding settings.
+
 typedef MoneyFormatter =
     String Function(int minorUnits, {String currencyCode, String? locale});
 
@@ -142,10 +164,23 @@ final memberRepositoryProvider = Provider<MemberRepository>((ref) {
 });
 
 /// Provider for [TransactionRepository].
-final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
+final Provider<TransactionRepository>
+transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
   final db = ref.watch(databaseProvider);
   final attachmentService = ref.watch(attachmentServiceProvider);
-  return DriftTransactionRepository(db, attachmentService);
+  return DriftTransactionRepository(
+    db,
+    attachmentService,
+    onChanged: () {
+      if (ref.read(widgetUpdateProvider)) {
+        // We use Future.microtask to avoid issues if this is called during a build
+        // (though createTransaction shouldn't be called during build)
+        Future.microtask(
+          () => ref.read(widgetDataServiceProvider).updateWidget(),
+        );
+      }
+    },
+  );
 });
 
 /// Provider for [TagRepository].

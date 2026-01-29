@@ -6,6 +6,7 @@ import 'src/app/app.dart';
 import 'src/app/providers.dart';
 import 'src/core/platform/local_log_service.dart';
 import 'src/features/budget/services/budget_alert_service.dart';
+import 'src/features/widgets/services/widget_data_service.dart';
 
 void main() async {
   runZonedGuarded(
@@ -30,6 +31,15 @@ void main() async {
 
       // Check budget alerts on startup
       await container.read(budgetAlertServiceProvider).checkAllBudgets();
+
+      // Update home screen widget on startup
+      final widgetService = container.read(widgetDataServiceProvider);
+      await widgetService.updateWidget();
+
+      // Schedule periodic widget updates
+      widgetService.schedulePeriodicUpdate(
+        () => container.read(widgetUpdateProvider),
+      );
 
       FlutterError.onError = (details) {
         FlutterError.presentError(details);
