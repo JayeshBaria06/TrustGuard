@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:home_widget/home_widget.dart';
+import '../../../core/utils/money.dart';
 import '../../dashboard/providers/dashboard_providers.dart';
 import '../../dashboard/services/dashboard_service.dart';
 import '../models/widget_data.dart';
@@ -28,17 +29,41 @@ class WidgetDataService {
   }
 
   Future<void> saveWidgetData(WidgetData data) async {
-    await HomeWidget.saveWidgetData('widget_owed_to_me', data.totalOwedToMe);
-    await HomeWidget.saveWidgetData('widget_owed_by_me', data.totalOwedByMe);
-    await HomeWidget.saveWidgetData('widget_net_balance', data.netBalance);
+    await HomeWidget.saveWidgetData(
+      'widget_owed_to_me_val',
+      data.totalOwedToMe,
+    );
+    await HomeWidget.saveWidgetData(
+      'widget_owed_by_me_val',
+      data.totalOwedByMe,
+    );
+    await HomeWidget.saveWidgetData('widget_net_balance_val', data.netBalance);
+
+    // Save formatted strings for display
+    await HomeWidget.saveWidgetData(
+      'widget_net_balance',
+      MoneyUtils.format(data.netBalance, currencyCode: data.currencyCode),
+    );
+    await HomeWidget.saveWidgetData(
+      'widget_owed',
+      'Owed: ${MoneyUtils.format(data.totalOwedToMe, currencyCode: data.currencyCode)}',
+    );
+    await HomeWidget.saveWidgetData(
+      'widget_owing',
+      'Owing: ${MoneyUtils.format(data.totalOwedByMe, currencyCode: data.currencyCode)}',
+    );
+
     await HomeWidget.saveWidgetData('widget_currency_code', data.currencyCode);
     await HomeWidget.saveWidgetData(
       'widget_group_count',
-      data.activeGroupCount,
+      '${data.activeGroupCount} active groups',
     );
+
+    final lastUpdatedStr =
+        '${data.lastUpdated.hour.toString().padLeft(2, '0')}:${data.lastUpdated.minute.toString().padLeft(2, '0')}';
     await HomeWidget.saveWidgetData(
       'widget_last_updated',
-      data.lastUpdated.toIso8601String(),
+      'Updated at $lastUpdatedStr',
     );
   }
 
