@@ -4,15 +4,17 @@ import '../../../core/models/transaction.dart';
 import '../../groups/presentation/groups_providers.dart';
 import '../../transactions/presentation/transactions_providers.dart';
 
+import '../../../core/models/member.dart';
+
 class BalanceService {
   /// Computes the net balance for each member in a group.
   /// Positive netAmountMinor means the member is a creditor (owed money).
   /// Negative netAmountMinor means the member is a debtor (owes money).
   static List<MemberBalance> computeBalances({
-    required List<String> memberIds,
-    required Map<String, String> memberNames,
+    required List<Member> members,
     required List<Transaction> transactions,
   }) {
+    final memberIds = members.map((m) => m.id).toList();
     final netAmounts = {for (var id in memberIds) id: 0};
 
     for (final tx in transactions) {
@@ -43,13 +45,14 @@ class BalanceService {
       }
     }
 
-    return memberIds.map((id) {
-      final amount = netAmounts[id] ?? 0;
+    return members.map((member) {
+      final amount = netAmounts[member.id] ?? 0;
       return MemberBalance(
-        memberId: id,
-        memberName: memberNames[id] ?? 'Unknown',
+        memberId: member.id,
+        memberName: member.displayName,
         netAmountMinor: amount,
         isCreditor: amount > 0,
+        member: member,
       );
     }).toList();
   }
@@ -64,13 +67,9 @@ final groupBalancesProvider = StreamProvider.autoDispose
       return transactionsAsync.when(
         data: (transactions) => membersAsync.when(
           data: (members) {
-            final memberIds = members.map((m) => m.id).toList();
-            final memberNames = {for (var m in members) m.id: m.displayName};
-
             return Stream.value(
               BalanceService.computeBalances(
-                memberIds: memberIds,
-                memberNames: memberNames,
+                members: members,
                 transactions: transactions,
               ),
             );

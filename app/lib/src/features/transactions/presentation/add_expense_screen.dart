@@ -20,7 +20,9 @@ import '../../../core/utils/haptics.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/validators.dart';
 import '../../../ui/animations/shake_widget.dart';
+import '../../../ui/components/member_avatar.dart';
 import '../../../ui/components/member_avatar_selector.dart';
+
 import '../../../ui/components/amount_input_field.dart';
 import '../../../ui/components/amount_suggestion_chips.dart';
 import '../../../ui/components/coachmark_overlay.dart';
@@ -523,13 +525,6 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       final amt = total * (percentage / 100);
       _customAmountControllers[id]?.text = amt.toStringAsFixed(2);
     }
-  }
-
-  String _getInitials(String name) {
-    if (name.isEmpty) return '';
-    final parts = name.trim().split(' ');
-    if (parts.length == 1) return parts[0][0].toUpperCase();
-    return (parts[0][0] + parts.last[0]).toUpperCase();
   }
 
   void _showSaveTemplateSheet() {
@@ -1114,24 +1109,14 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                           children: [
                                             Row(
                                               children: [
-                                                CircleAvatar(
+                                                MemberAvatar(
+                                                  member: member,
                                                   radius: 16,
-                                                  backgroundColor:
-                                                      Theme.of(context)
-                                                          .colorScheme
-                                                          .surfaceContainerHighest,
-                                                  child: Text(
-                                                    _getInitials(
-                                                      member.displayName,
-                                                    ),
-                                                    style: TextStyle(
-                                                      fontSize: 10,
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurfaceVariant,
-                                                    ),
+                                                  textStyle: const TextStyle(
+                                                    fontSize: 10,
                                                   ),
                                                 ),
+
                                                 const SizedBox(
                                                   width: AppTheme.space12,
                                                 ),

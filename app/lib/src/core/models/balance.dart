@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'member.dart';
+
 part 'balance.freezed.dart';
 part 'balance.g.dart';
 
@@ -10,6 +12,7 @@ abstract class MemberBalance with _$MemberBalance {
     required String memberName,
     required int netAmountMinor,
     required bool isCreditor,
+    Member? member,
   }) = _MemberBalance;
 
   factory MemberBalance.fromJson(Map<String, dynamic> json) =>

@@ -1,3 +1,4 @@
+import '../../../core/models/member.dart';
 import '../../../core/models/balance.dart';
 import '../../../core/models/settlement_suggestion.dart';
 
@@ -21,6 +22,7 @@ class SettlementService {
                 b.memberId,
                 b.memberName,
                 b.netAmountMinor.abs(),
+                b.member,
               ),
             )
             .toList()
@@ -32,8 +34,12 @@ class SettlementService {
         balances
             .where((b) => b.netAmountMinor > 0)
             .map(
-              (b) =>
-                  _MutableBalance(b.memberId, b.memberName, b.netAmountMinor),
+              (b) => _MutableBalance(
+                b.memberId,
+                b.memberName,
+                b.netAmountMinor,
+                b.member,
+              ),
             )
             .toList()
           ..sort(
@@ -60,6 +66,8 @@ class SettlementService {
             toMemberId: creditor.memberId,
             toMemberName: creditor.memberName,
             amountMinor: amountToSettle,
+            fromMember: debtor.member,
+            toMember: creditor.member,
           ),
         );
       }
@@ -79,6 +87,12 @@ class _MutableBalance {
   final String memberId;
   final String memberName;
   int amountMinor;
+  final Member? member;
 
-  _MutableBalance(this.memberId, this.memberName, this.amountMinor);
+  _MutableBalance(
+    this.memberId,
+    this.memberName,
+    this.amountMinor,
+    this.member,
+  );
 }

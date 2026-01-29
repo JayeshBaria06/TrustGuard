@@ -101,12 +101,8 @@ class ExportService {
       groupId,
     );
 
-    final memberIds = members.map((m) => m.id).toList();
-    final memberNames = {for (var m in members) m.id: m.displayName};
-
     final balances = BalanceService.computeBalances(
-      memberIds: memberIds,
-      memberNames: memberNames,
+      members: members,
       transactions: transactions,
     );
     final suggestions = SettlementService.computeSettlementSuggestions(

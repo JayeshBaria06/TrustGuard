@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/utils/haptics.dart';
 import '../../app/app.dart';
 import '../../core/models/member.dart';
+import 'member_avatar.dart';
+
 import '../theme/app_theme.dart';
 
 class MemberAvatarSelector extends StatelessWidget {
@@ -19,13 +21,6 @@ class MemberAvatarSelector extends StatelessWidget {
     this.allowMultiple = false,
     this.label,
   });
-
-  String _getInitials(String name) {
-    if (name.isEmpty) return '';
-    final parts = name.trim().split(' ');
-    if (parts.length == 1) return parts[0][0].toUpperCase();
-    return (parts[0][0] + parts.last[0]).toUpperCase();
-  }
 
   void _handleTap(String memberId) {
     HapticsService.selection();
@@ -90,34 +85,10 @@ class MemberAvatarSelector extends StatelessWidget {
                         Stack(
                           alignment: Alignment.center,
                           children: [
-                            if (isSelected)
-                              Container(
-                                width: 52,
-                                height: 52,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: colorScheme.primary,
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                            CircleAvatar(
+                            MemberAvatar(
+                              member: member,
+                              isSelected: isSelected,
                               radius: 22,
-                              backgroundColor: isSelected
-                                  ? colorScheme.primaryContainer
-                                  : colorScheme.surfaceContainerHighest,
-                              child: Text(
-                                _getInitials(member.displayName),
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? colorScheme.onPrimaryContainer
-                                      : colorScheme.onSurfaceVariant,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
                             ),
                             if (isSelected && allowMultiple)
                               Positioned(
@@ -138,6 +109,7 @@ class MemberAvatarSelector extends StatelessWidget {
                               ),
                           ],
                         ),
+
                         const SizedBox(height: AppTheme.space4),
                         SizedBox(
                           width: 60,

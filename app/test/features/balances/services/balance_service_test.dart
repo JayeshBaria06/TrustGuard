@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trustguard/src/core/models/member.dart';
 import 'package:trustguard/src/core/models/expense.dart';
 import 'package:trustguard/src/core/models/transaction.dart';
 import 'package:trustguard/src/core/models/transfer.dart';
@@ -7,8 +8,26 @@ import 'package:trustguard/src/features/balances/services/balance_service.dart';
 void main() {
   group('BalanceService', () {
     test('computes balances correctly for simple expense', () {
-      final memberIds = ['m1', 'm2', 'm3'];
-      final memberNames = {'m1': 'Alice', 'm2': 'Bob', 'm3': 'Charlie'};
+      final members = [
+        Member(
+          id: 'm1',
+          groupId: 'g1',
+          displayName: 'Alice',
+          createdAt: DateTime.now(),
+        ),
+        Member(
+          id: 'm2',
+          groupId: 'g1',
+          displayName: 'Bob',
+          createdAt: DateTime.now(),
+        ),
+        Member(
+          id: 'm3',
+          groupId: 'g1',
+          displayName: 'Charlie',
+          createdAt: DateTime.now(),
+        ),
+      ];
       final transactions = [
         Transaction(
           id: 't1',
@@ -32,8 +51,7 @@ void main() {
       ];
 
       final balances = BalanceService.computeBalances(
-        memberIds: memberIds,
-        memberNames: memberNames,
+        members: members,
         transactions: transactions,
       );
 
@@ -59,8 +77,20 @@ void main() {
     });
 
     test('computes balances correctly with transfers', () {
-      final memberIds = ['m1', 'm2'];
-      final memberNames = {'m1': 'Alice', 'm2': 'Bob'};
+      final members = [
+        Member(
+          id: 'm1',
+          groupId: 'g1',
+          displayName: 'Alice',
+          createdAt: DateTime.now(),
+        ),
+        Member(
+          id: 'm2',
+          groupId: 'g1',
+          displayName: 'Bob',
+          createdAt: DateTime.now(),
+        ),
+      ];
       final transactions = [
         // Alice paid 2000 for both (1000 each)
         Transaction(
@@ -99,8 +129,7 @@ void main() {
       ];
 
       final balances = BalanceService.computeBalances(
-        memberIds: memberIds,
-        memberNames: memberNames,
+        members: members,
         transactions: transactions,
       );
 
@@ -124,8 +153,14 @@ void main() {
     });
 
     test('excludes deleted transactions', () {
-      final memberIds = ['m1'];
-      final memberNames = {'m1': 'Alice'};
+      final members = [
+        Member(
+          id: 'm1',
+          groupId: 'g1',
+          displayName: 'Alice',
+          createdAt: DateTime.now(),
+        ),
+      ];
       final transactions = [
         Transaction(
           id: 't1',
@@ -148,8 +183,7 @@ void main() {
       ];
 
       final balances = BalanceService.computeBalances(
-        memberIds: memberIds,
-        memberNames: memberNames,
+        members: members,
         transactions: transactions,
       );
 

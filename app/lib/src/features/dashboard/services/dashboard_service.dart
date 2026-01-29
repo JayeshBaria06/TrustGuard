@@ -31,8 +31,7 @@ class DashboardService {
       );
 
       final balances = BalanceService.computeBalances(
-        memberIds: members.map((m) => m.id).toList(),
-        memberNames: {for (var m in members) m.id: m.displayName},
+        members: members,
         transactions: transactions,
       );
 

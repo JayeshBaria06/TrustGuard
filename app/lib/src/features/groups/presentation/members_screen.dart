@@ -8,6 +8,7 @@ import '../../../core/services/undoable_action_service.dart';
 import '../../../ui/components/undo_snackbar.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/empty_state.dart';
+import '../../../ui/components/member_avatar.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../generated/app_localizations.dart';
 import 'groups_providers.dart';
@@ -357,7 +358,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
 
     return ListTile(
       key: ValueKey(member.id),
-      leading: CircleAvatar(child: Text(member.displayName[0].toUpperCase())),
+      leading: MemberAvatar(member: member, radius: 20),
       title: Text(
         member.displayName,
         style: TextStyle(

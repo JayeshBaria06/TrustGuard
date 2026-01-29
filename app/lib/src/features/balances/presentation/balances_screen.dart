@@ -5,6 +5,7 @@ import '../../../app/providers.dart';
 import '../../../app/app.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/empty_state.dart';
+import '../../../ui/components/member_avatar.dart';
 import '../../../ui/components/balance_progress_bar.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
 import '../../../ui/animations/staggered_list_animation.dart';
@@ -139,6 +140,9 @@ class _BalancesScreenState extends ConsumerState<BalancesScreen>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             ListTile(
+                              leading: balance.member != null
+                                  ? MemberAvatar(member: balance.member!)
+                                  : null,
                               title: Text(
                                 balance.memberName,
                                 style: const TextStyle(

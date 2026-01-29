@@ -54,12 +54,8 @@ class ReminderService {
     final members = await _memberRepo.getMembersByGroup(groupId);
     final transactions = await _transactionRepo.getTransactionsByGroup(groupId);
 
-    final memberIds = members.map((m) => m.id).toList();
-    final memberNames = {for (var m in members) m.id: m.displayName};
-
     final balances = BalanceService.computeBalances(
-      memberIds: memberIds,
-      memberNames: memberNames,
+      members: members,
       transactions: transactions,
     );
 

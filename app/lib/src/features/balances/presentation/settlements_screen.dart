@@ -9,6 +9,7 @@ import '../../../core/models/settlement_suggestion.dart';
 import '../../../core/utils/money.dart';
 import '../../../ui/animations/animation_config.dart';
 import '../../../ui/components/empty_state.dart';
+import '../../../ui/components/member_avatar.dart';
 import '../../../ui/animations/lottie_assets.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../../../ui/components/skeletons/skeleton_list.dart';
@@ -299,33 +300,68 @@ class _SuggestionCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Text(
-                        suggestion.fromMemberName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        l10n.owesLabel,
-                        style: Theme.of(context).textTheme.labelSmall,
+                      if (suggestion.fromMember != null)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            right: AppTheme.space8,
+                          ),
+                          child: MemberAvatar(
+                            member: suggestion.fromMember!,
+                            radius: 16,
+                          ),
+                        ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              suggestion.fromMemberName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              l10n.owesLabel,
+                              style: Theme.of(context).textTheme.labelSmall,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const Icon(Icons.arrow_forward, color: Colors.grey),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text(
-                        suggestion.toMemberName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              suggestion.toMemberName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              l10n.isOwedLabel,
+                              style: Theme.of(context).textTheme.labelSmall,
+                            ),
+                          ],
+                        ),
                       ),
-                      Text(
-                        l10n.isOwedLabel,
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
+                      if (suggestion.toMember != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: AppTheme.space8),
+                          child: MemberAvatar(
+                            member: suggestion.toMember!,
+                            radius: 16,
+                          ),
+                        ),
                     ],
                   ),
                 ),
