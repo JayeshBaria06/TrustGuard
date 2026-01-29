@@ -1,79 +1,205 @@
-# TrustGuard
+<p align="center">
+  <img src="app/assets/icons/app_icon.png" alt="TrustGuard Logo" width="120" height="120">
+</p>
 
-TrustGuard is an offline-first group expense and settlement ledger Flutter app. It helps you track shared expenses, manage group balances, and suggests the most efficient way to settle debts among friends.
+<h1 align="center">TrustGuard</h1>
 
-## Features
+<p align="center">
+  <strong>Offline-first group expense and settlement ledger</strong>
+</p>
 
-- **Offline-First**: All data is stored locally on your device using SQLite (Drift). No cloud account needed.
-- **Dashboard**: Global balance overview and recent activity across all active groups with animated rolling numbers.
-- **Spending Analytics**: Visualize spending by category and member with interactive pie charts and trend lines.
-- **Theme Customization**: Full support for Light, Dark, and System theme modes. Now includes a **High-Contrast** mode for improved accessibility.
-- **Accessibility Compliance**: Comprehensive support for screen readers (TalkBack/VoiceOver), logical focus order, and 48dp minimum touch targets.
-- **Privacy Focused**: Your financial data never leaves your device (unless you explicitly export it).
-- **Group Management**: Create multiple groups for different trips, roommates, or events.
-- **Flexible Expenses**: Split expenses equally or with custom amounts with real-time visual preview. Now supports **percentage-based** splits with tactile slider controls.
-- **Expense Templates**: Create reusable templates for common expenses to save time on data entry.
-- **Budget Tracking**: Set periodic budgets (weekly, monthly, yearly) for groups or specific categories with automated spending alerts.
-- **QR Code Sharing**: Share expenses and transfers device-to-device without internet via compressed QR codes.
-- **Receipt OCR**: Automatically extract amount, date, and merchant from receipts using on-device machine learning.
-- **Recurring Transactions**: Automate periodic expenses and transfers with flexible schedules.
-- **Member Avatars**: Personalize members with custom photos, camera captures, or preset color initials.
-- **Home Screen Widgets**: View your balances and top groups at a glance on iOS and Android.
-- **Modern Interactions**: Avatar-based member selection, swipe-to-action gestures, drag-to-reorder members/tags, and glassmorphism sticky date headers.
-- **Motion Design**: Smooth navigation with container transforms, staggered list animations, and celebration effects.
-- **Speed Dial FAB**: Quick access to common actions and a compact **Quick Add** sheet for rapid expense entry.
-- **Smart Suggestions**: Intelligent amount suggestions based on your frequent and recent spending habits.
-- **Balance Visualization**: Bidirectional progress bars for a clear visual representation of member balances.
-- **Undo Safety**: 5-second undo window for accidental transaction deletions.
-- **Keyboard Shortcuts**: Full support for desktop power users (Ctrl/Cmd + N/T/F/S/Esc).
-- **Data Import**: Seamlessly migrate from Splitwise or Tricount via CSV import with intelligent member mapping.
-- **Efficient Settlements**: Deterministic greedy algorithm to minimize the number of transfers needed.
-- **Tagging & Filtering**: Categorize transactions with tags and find them easily with search and filters.
-- **Security**: Protect your data with a PIN or biometric lock.
-- **Export & Backup**: Export your data to CSV or create full JSON backups.
+<p align="center">
+  <a href="https://flutter.dev">
+    <img src="https://img.shields.io/badge/Flutter-3.9+-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
+  </a>
+  <a href="https://dart.dev">
+    <img src="https://img.shields.io/badge/Dart-3.9+-0175C2?style=for-the-badge&logo=dart&logoColor=white" alt="Dart">
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT">
+  </a>
+</p>
 
-## Getting Started
+<p align="center">
+  <a href="#">
+    <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-blueviolet?style=flat-square" alt="Platforms">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Offline-First-orange?style=flat-square" alt="Offline-First">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Privacy-Focused-success?style=flat-square" alt="Privacy Focused">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Accessibility-WCAG%20Compliant-blue?style=flat-square" alt="Accessibility">
+  </a>
+</p>
+
+<p align="center">
+  Track shared expenses, manage group balances, and settle debts efficiently among friends — all without an internet connection.
+</p>
+
+---
+
+## 📱 Platform Support
+
+TrustGuard is built with Flutter and runs on multiple platforms. Core functionality works everywhere, while some features require platform-specific capabilities:
+
+| Feature | Android | iOS | macOS | Windows | Linux | Web |
+|---------|:-------:|:---:|:-----:|:-------:|:-----:|:---:|
+| **Core Features** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Expense & Group Management | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Offline Database | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ |
+| Export & Backup | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **Mobile Features** | | | | | | |
+| QR Code Scanning | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Receipt OCR | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Home Screen Widgets | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Local Notifications | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ | ❌ |
+| Biometric Auth | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+
+✅ Full support | ⚠️ Limited support | ❌ Not available
+
+> **Note**: Mobile-only features gracefully degrade on unsupported platforms — they show appropriate messages rather than crashing.
+
+---
+
+## 📱 Screenshots
+
+<p align="center">
+  <img src="screenshots/01_home.png" alt="Home Screen" width="280">
+  &nbsp;&nbsp;&nbsp;
+  <img src="screenshots/02_add_expense.png" alt="Add Expense" width="280">
+</p>
+
+---
+
+## ✨ Features
+
+### Core Functionality
+
+| Feature | Description |
+|---------|-------------|
+| 🔒 **Offline-First** | All data stored locally using SQLite (Drift). No cloud account needed. |
+| 📊 **Dashboard** | Global balance overview with animated rolling numbers and recent activity. |
+| 📈 **Spending Analytics** | Interactive pie charts and trend lines for spending by category and member. |
+| 👥 **Group Management** | Create multiple groups for trips, roommates, or events. |
+| 💰 **Flexible Expenses** | Split equally, by custom amounts, or percentage-based with tactile slider controls. |
+| ⚡ **Efficient Settlements** | Deterministic greedy algorithm minimizes the number of transfers needed. |
+
+### Productivity
+
+| Feature | Description |
+|---------|-------------|
+| 📝 **Expense Templates** | Reusable templates for common expenses save time on data entry. |
+| 💳 **Budget Tracking** | Set periodic budgets (weekly, monthly, yearly) with automated spending alerts. |
+| 🔄 **Recurring Transactions** | Automate periodic expenses and transfers with flexible schedules. |
+| 🏷️ **Tagging & Filtering** | Categorize transactions with tags and find them with search and filters. |
+| 💡 **Smart Suggestions** | Intelligent amount suggestions based on your spending habits. |
+| ⌨️ **Keyboard Shortcuts** | Full desktop support (Ctrl/Cmd + N/T/F/S/Esc). |
+
+### Sharing & Import
+
+| Feature | Description |
+|---------|-------------|
+| 📲 **QR Code Sharing** | Share expenses device-to-device without internet via compressed QR codes. *(Mobile only)* |
+| 🧾 **Receipt OCR** | Extract amount, date, and merchant from receipts using on-device ML. *(Mobile only)* |
+| 📥 **Data Import** | Migrate from Splitwise or Tricount via CSV with intelligent member mapping. |
+| 📤 **Export & Backup** | Export data to CSV or create full JSON backups. |
+
+### Personalization & UX
+
+| Feature | Description |
+|---------|-------------|
+| 🎨 **Theme Customization** | Light, Dark, System, and High-Contrast modes. |
+| 👤 **Member Avatars** | Custom photos, camera captures, or preset color initials. |
+| 📱 **Home Screen Widgets** | View balances at a glance. *(Android & iOS only)* |
+| ✨ **Motion Design** | Container transforms, staggered animations, and celebration effects. |
+| 🎯 **Speed Dial FAB** | Quick access to common actions with Quick Add sheet. |
+| 📊 **Balance Visualization** | Bidirectional progress bars for clear balance representation. |
+| ↩️ **Undo Safety** | 5-second undo window for accidental deletions. |
+
+### Accessibility & Security
+
+| Feature | Description |
+|---------|-------------|
+| ♿ **Accessibility Compliance** | Screen reader support (TalkBack/VoiceOver), logical focus order, 48dp touch targets. |
+| 🔐 **Security** | PIN or biometric lock to protect your data. |
+| 🛡️ **Privacy Focused** | Your financial data never leaves your device. |
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Flutter SDK (Stable channel)
-- Android SDK (for Android builds)
-- Xcode (for iOS builds, macOS only)
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) (Stable channel, 3.9+)
+- **Android**: Android SDK
+- **iOS/macOS**: Xcode (macOS only)
+- **Windows**: Visual Studio with C++ development tools
+- **Linux**: GTK development libraries (`libgtk-3-dev`, `libblkid-dev`, `liblzma-dev`)
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
    git clone https://github.com/MasuRii/TrustGuard.git
    ```
-2. Navigate to the app directory:
+
+2. **Navigate to the app directory**
    ```bash
    cd TrustGuard/app
    ```
-3. Install dependencies:
+
+3. **Install dependencies**
    ```bash
    flutter pub get
    ```
-4. Run code generation:
+
+4. **Run code generation**
    ```bash
    dart run build_runner build --delete-conflicting-outputs
    ```
-5. Run the app:
+
+5. **Run the app**
    ```bash
    flutter run
    ```
 
-## Documentation
 
-- [Product Specification](docs/product.md)
-- [Architecture Overview](docs/architecture.md)
-- [Contribution Guidelines](CONTRIBUTING.md)
-- [Security Policy](SECURITY.md)
+## 🌍 Localization
 
-## Localization
+TrustGuard is ready for internationalization! If you'd like to see the app in your language, check the [Adding Translations](CONTRIBUTING.md#adding-translations) section in our contributing guide.
 
-TrustGuard is ready for internationalization! If you would like to see the app in your language, please check the [Adding Translations](CONTRIBUTING.md#adding-translations) section in our contributing guide.
+---
 
-## License
+## 🤝 Contributing
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">
+  Made with ❤️ using Flutter
+</p>
+
+<p align="center">
+  <a href="https://github.com/MasuRii/TrustGuard/stargazers">
+    <img src="https://img.shields.io/github/stars/MasuRii/TrustGuard?style=social" alt="GitHub Stars">
+  </a>
+  <a href="https://github.com/MasuRii/TrustGuard/network/members">
+    <img src="https://img.shields.io/github/forks/MasuRii/TrustGuard?style=social" alt="GitHub Forks">
+  </a>
+</p>

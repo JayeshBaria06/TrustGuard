@@ -2,9 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
 ## [1.5.0] - 2026-01-30
 
 ### Added
+
 - **Accessibility Compliance**:
   - Comprehensive **Semantics** labels and hints for all core components.
   - Standardized all interactive elements to **48dp minimum touch targets**.
@@ -37,11 +43,13 @@ All notable changes to this project will be documented in this file.
   - New modular integration test suite for v1.5 features.
 
 ### Changed
+
 - Updated `DashboardService` to support cross-group balance aggregation for widgets.
 - Enhanced `NotificationService` with immediate notification support for alerts.
 - Refactored `MemberAvatarSelector` for better visual feedback.
 
 ### Fixed
+
 - Fixed Riverpod circular dependency in `transactionRepositoryProvider`.
 - Resolved layout issues in `SaveAsTemplateSheet` on small devices.
 - Improved database migration logic to handle sequential version upgrades more reliably.
@@ -49,6 +57,7 @@ All notable changes to this project will be documented in this file.
 ## [1.4.0] - 2026-01-30
 
 ### Added
+
 - **Speed Dial FAB**: New expandable Floating Action Button on the transaction list.
   - **Quick Add**: Compact bottom sheet for rapid equal-split expense entry.
   - Immediate access to New Expense and New Transfer.
@@ -75,17 +84,20 @@ All notable changes to this project will be documented in this file.
   - Added full v1.4 feature integration test suite.
 
 ### Changed
+
 - Improved `EmptyState` component with Lottie support and better accessibility.
 - Enhanced `AddExpenseScreen` with percentage-based split mode.
 - Optimized app startup sequence for background recurring transaction processing.
 
 ### Fixed
+
 - Fixed a bug where staggered animations would not play on initial load in some screens.
 - Improved focus management when using keyboard shortcuts on list screens.
 
 ## [1.3.0] - 2026-01-28
 
 ### Added
+
 - **Spending Analytics**: Integrated `fl_chart` for visual spending insights.
   - Interactive Pie Charts for category and member breakdowns.
   - Monthly Trend Charts with period filtering and gradient fills.
@@ -112,17 +124,20 @@ All notable changes to this project will be documented in this file.
   - New E2E integration test covering the complete v1.3 feature set.
 
 ### Changed
+
 - Refactored `TransactionListScreen` to use `CustomScrollView` for better performance and sticky headers.
 - Updated `DashboardCard` to use `RollingNumberText` for all financial summaries.
 - Integrated `ShakeWidget` into all primary form validation flows.
 
 ### Fixed
+
 - Improved CSV parsing robustness across different operating systems (EOL handling).
 - Resolved overlapping text issues in `MemberAvatarSelector` on small devices.
 
 ## [1.2.0] - 2026-01-27
 
 ### Added
+
 - **Global Dashboard**: New home screen overview showing total debt/credit across all active groups and recent activity.
 - **Theme Customization**: Support for Light, Dark, and System theme modes with persistence.
 - **Modern Member Selection**: Replaced legacy dropdowns and checkboxes with horizontal avatar selectors for better UX.
@@ -137,13 +152,33 @@ All notable changes to this project will be documented in this file.
 - **Integration Testing**: Comprehensive end-to-end user flow tests.
 
 ### Changed
+
 - Improved `EmptyState` component to support both icons and SVG paths.
 - Optimized balance aggregation logic for cross-group summaries.
 - Updated user guide with new UI/UX features.
 
 ### Fixed
+
 - Resolved minor layout shifts during data loading.
 - Fixed inconsistent tag display in filtered lists.
 
 ## [1.1.0] - 2026-01-15
-- Initial stable release with core features: Offline storage, group management, basic expenses/transfers, search/filters, PIN lock, and CSV export.
+
+### Added
+
+- Initial stable release with core features.
+- Offline storage using SQLite (Drift).
+- Group management with members.
+- Basic expenses and transfers.
+- Search and filters.
+- PIN lock security.
+- CSV export.
+
+---
+
+[Unreleased]: https://github.com/MasuRii/TrustGuard/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/MasuRii/TrustGuard/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/MasuRii/TrustGuard/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/MasuRii/TrustGuard/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/MasuRii/TrustGuard/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/MasuRii/TrustGuard/releases/tag/v1.1.0
